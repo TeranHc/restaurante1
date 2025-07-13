@@ -1,7 +1,6 @@
-// src/app/layout.js
-
 import './globals.css'
-import Link from 'next/link'
+import Header from './Components/Header.jsx'
+import Footer from './Components/Footer.jsx'
 
 export const metadata = {
   title: 'Restaurante Delicioso',
@@ -11,16 +10,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body className="bg-gray-50 text-gray-900 font-sans">
-        <header className="bg-white shadow p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">🍽️ Restaurante Delicioso</h1>
-          <nav className="space-x-4">
-            <Link href="/">Inicio</Link>
-            <Link href="/menu">Menú</Link>
-            <Link href="/carrito">Carrito</Link>
-          </nav>
-        </header>
-        <main className="p-4 max-w-6xl mx-auto">{children}</main>
+      <body className="bg-gray-50 text-gray-900 font-sans flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow p-4 max-w-6xl mx-auto">{children}</main>
+        <Footer />
       </body>
     </html>
   )
