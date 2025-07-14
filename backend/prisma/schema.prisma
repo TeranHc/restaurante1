@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,35 +8,31 @@ datasource db {
 }
 
 model Producto {
-  id          Int     @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   nombre      String
   descripcion String
   precio      Float
   imagen      String
   categoria   String?
-  disponible  Boolean @default(true)
-
+  disponible  Boolean         @default(true)
   detalles    DetallePedido[]
 }
 
 model Pedido {
-  id        Int              @id @default(autoincrement())
-  fecha     DateTime         @default(now())
-  total     Float
-  estado    String           @default("pendiente")
-  cliente   String?
-
-  detalles  DetallePedido[]
+  id       Int             @id @default(autoincrement())
+  fecha    DateTime        @default(now())
+  total    Float
+  estado   String          @default("pendiente")
+  cliente  String?
+  detalles DetallePedido[]
 }
 
 model DetallePedido {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   pedido_id   Int
   producto_id Int
   cantidad    Int
   subtotal    Float
-
-  pedido   Pedido   @relation(fields: [pedido_id], references: [id])
-  producto Producto @relation(fields: [producto_id], references: [id])
+  pedido      Pedido   @relation(fields: [pedido_id], references: [id])
+  producto    Producto @relation(fields: [producto_id], references: [id])
 }
-
