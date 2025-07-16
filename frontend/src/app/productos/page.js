@@ -16,7 +16,8 @@ export default function Page() {
       const data = await res.json()
       setProductos(data)
     } catch (error) {
-      alert(error.message)
+      console.error(error)
+      alert('Error cargando productos')
     } finally {
       setLoading(false)
     }
@@ -32,19 +33,20 @@ export default function Page() {
       if (editProducto) {
         res = await fetch(`http://localhost:3001/api/productos/${editProducto.id}`, {
           method: 'PUT',
-          body: formData,  // 👈 Ahora es un FormData, no JSON
+          body: formData, // Ahora es FormData
         })
       } else {
         res = await fetch('http://localhost:3001/api/productos', {
           method: 'POST',
-          body: formData,  // 👈 Ahora es un FormData, no JSON
+          body: formData,
         })
       }
       if (!res.ok) throw new Error('Error al guardar producto')
       await fetchProductos()
       setEditProducto(null)
     } catch (error) {
-      alert(error.message)
+      console.error(error)
+      alert('Error guardando producto')
     }
   }
 
@@ -57,7 +59,8 @@ export default function Page() {
       if (!res.ok) throw new Error('Error al eliminar producto')
       await fetchProductos()
     } catch (error) {
-      alert(error.message)
+      console.error(error)
+      alert('Error eliminando producto')
     }
   }
 
@@ -108,6 +111,7 @@ export default function Page() {
           <thead>
             <tr>
               <th style={thStyle}>ID</th>
+              <th style={thStyle}>Imagen</th>
               <th style={thStyle}>Nombre</th>
               <th style={thStyle}>Precio</th>
               <th style={thStyle}>Categoría</th>
@@ -120,8 +124,21 @@ export default function Page() {
             {productos.map((prod) => (
               <tr key={prod.id}>
                 <td style={tdStyle}>{prod.id}</td>
+
+                <td style={tdStyle}>
+                  {prod.imagen ? (
+                    <img
+                      src={`http://localhost:3001${prod.imagen}`}
+                      alt={prod.nombre}
+                      style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+                    />
+                  ) : (
+                    <span>Sin imagen</span>
+                  )}
+                </td>
+
                 <td style={tdStyle}>{prod.nombre}</td>
-                <td style={tdStyle}> ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}</td>
+                <td style={tdStyle}>${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}</td>
                 <td style={tdStyle}>{prod.category?.name}</td>
                 <td style={tdStyle}>{prod.restaurant?.name}</td>
                 <td style={tdStyle}>{prod.disponible ? 'Sí' : 'No'}</td>

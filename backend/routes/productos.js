@@ -1,7 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const prisma = require('../prismaClient')
-const upload = require('../multerConfig')// multer configurado
+const upload = require('../multerConfig') // multer configurado
+const fs = require('fs')
+const path = require('path')
 
 // Listar productos (incluyendo categoría y restaurante)
 router.get('/', async (req, res) => {
@@ -52,11 +54,11 @@ router.post('/', upload.single('imagen'), async (req, res) => {
   }
 })
 
-// Actualizar producto (imagen no actualizable aquí)
-router.put('/:id', async (req, res) => {
+// Actualizar producto (permite actualizar o eliminar imagen)
+router.put('/:id', upload.single('imagen'), async (req, res) => {
   try {
     const { id } = req.params
-    const { nombre, descripcion, precio, imagen, disponible, categoryId, restaurantId } = req.body
+    const { nombre, descripcion, precio, disponible, categoryId, restaurantId, eliminarImagen } = req.body
 
     const productoExistente = await prisma.product.findUnique({
       where: { id: parseInt(id) },
@@ -65,17 +67,42 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Producto no encontrado' })
     }
 
+    let imagenPath = productoExistente.imagen
+
+    // Si sube una nueva imagen
+    if (req.file) {
+      imagenPath = `/uploads/${req.file.filename}`
+
+      if (productoExistente.imagen) {
+        const rutaImagenAnterior = path.join(__dirname, '..', productoExistente.imagen)
+        fs.unlink(rutaImagenAnterior, (err) => {
+          if (err) console.error('Error eliminando imagen anterior:', err)
+        })
+      }
+    }
+
+    // Si solicita eliminar la imagen
+    if (eliminarImagen === 'true') {
+      if (productoExistente.imagen) {
+        const rutaImagenAnterior = path.join(__dirname, '..', productoExistente.imagen)
+        fs.unlink(rutaImagenAnterior, (err) => {
+          if (err) console.error('Error eliminando imagen:', err)
+        })
+      }
+      imagenPath = null
+    }
+
     const productoActualizado = await prisma.product.update({
       where: { id: parseInt(id) },
       data: {
         nombre,
         descripcion,
         precio: precio !== undefined ? parseFloat(precio) : productoExistente.precio,
-        imagen: imagen !== undefined ? imagen : productoExistente.imagen,
+        imagen: imagenPath,
         disponible: disponible !== undefined ? (disponible === 'true' || disponible === true) : productoExistente.disponible,
         categoryId: categoryId !== undefined ? parseInt(categoryId) : productoExistente.categoryId,
         restaurantId: restaurantId !== undefined ? parseInt(restaurantId) : productoExistente.restaurantId,
-      }
+      },
     })
 
     res.json(productoActualizado)
@@ -95,6 +122,14 @@ router.delete('/:id', async (req, res) => {
     })
     if (!productoExistente) {
       return res.status(404).json({ error: 'Producto no encontrado' })
+    }
+
+    // Eliminar imagen del servidor (si existe)
+    if (productoExistente.imagen) {
+      const rutaImagen = path.join(__dirname, '..', productoExistente.imagen)
+      fs.unlink(rutaImagen, (err) => {
+        if (err) console.error('Error eliminando imagen:', err)
+      })
     }
 
     await prisma.product.delete({

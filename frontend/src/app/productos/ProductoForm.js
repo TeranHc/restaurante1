@@ -13,6 +13,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
   })
 
   const [imagenFile, setImagenFile] = useState(null)
+  const [eliminarImagen, setEliminarImagen] = useState(false)
   const [categorias, setCategorias] = useState([])
   const [restaurantes, setRestaurantes] = useState([])
 
@@ -36,6 +37,8 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
         categoryId: producto.categoryId || '',
         restaurantId: producto.restaurantId || '',
       })
+      setEliminarImagen(false)
+      setImagenFile(null)
     } else {
       setFormData({
         nombre: '',
@@ -45,6 +48,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
         categoryId: '',
         restaurantId: '',
       })
+      setEliminarImagen(false)
       setImagenFile(null)
     }
   }, [producto])
@@ -58,22 +62,30 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
   }
 
   const handleImageChange = (e) => {
-    setImagenFile(e.target.files[0])  // Guarda el archivo seleccionado
+    setImagenFile(e.target.files[0])
+    setEliminarImagen(false)
   }
 
-  const handleSubmit = async (e) => {
+  const handleEliminarImagen = () => {
+    setEliminarImagen(true)
+    setImagenFile(null)
+  }
+
+  const handleSubmit = (e) => {
     e.preventDefault()
 
     const data = new FormData()
 
-    // Agregar los campos de texto al FormData
     Object.keys(formData).forEach(key => {
       data.append(key, formData[key])
     })
 
-    // Agregar la imagen solo si fue seleccionada
     if (imagenFile) {
       data.append('imagen', imagenFile)
+    }
+
+    if (eliminarImagen) {
+      data.append('eliminarImagen', 'true')
     }
 
     onSubmit(data)
@@ -109,12 +121,36 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
         />
       ))}
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageChange}
-        style={inputStyle}
-      />
+      {producto?.imagen && !eliminarImagen && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          {/* <img
+            src={producto.imagen}
+            alt="Imagen actual"
+            style={{ width: '120px', borderRadius: '6px', display: 'block', marginBottom: '0.3rem' }}
+          /> */}
+          {/* <button
+            type="button"
+            onClick={handleEliminarImagen}
+            style={{
+              ...buttonStyle,
+              backgroundColor: '#e00',
+              color: 'white',
+              fontSize: '0.8rem',
+            }}
+          >
+            Eliminar Imagen
+          </button> */}
+        </div>
+      )}
+
+      {!eliminarImagen && (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          style={inputStyle}
+        />
+      )}
 
       <label style={{ marginLeft: '1rem' }}>
         Disponible:
