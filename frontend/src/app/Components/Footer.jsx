@@ -2,7 +2,7 @@
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-gray-300 py-10 mt-16 relative overflow-hidden">
+    <footer className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-gray-300 py-10 mt-1 relative overflow-hidden">
       {/* Decoración de fondo */}
       <div className="absolute inset-0 opacity-5 pointer-events-none z-0">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-600/20 to-transparent"></div>
