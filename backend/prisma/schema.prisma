@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,32 +10,185 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Producto {
-  id          Int             @id @default(autoincrement())
-  nombre      String
-  descripcion String
-  precio      Float
-  imagen      String
-  categoria   String?
-  disponible  Boolean         @default(true)
-  detalles    DetallePedido[]
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique @db.VarChar(255)
+  password   String   @db.VarChar(255)
+  firstName  String   @map("first_name") @db.VarChar(100)
+  lastName   String   @map("last_name") @db.VarChar(100)
+  phone      String?  @db.VarChar(20)
+  role       Role     @default(CLIENT)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  isActive   Boolean  @default(true) @map("is_active")
+
+  // Relaciones
+  orders      Order[]
+  reservations Reservation[]
+  cartItems   CartItem[]
+
+  @@map("users")
 }
 
-model Pedido {
-  id       Int             @id @default(autoincrement())
-  fecha    DateTime        @default(now())
-  total    Float
-  estado   String          @default("pendiente")
-  cliente  String?
-  detalles DetallePedido[]
-}
-
-model DetallePedido {
+model Restaurant {
   id          Int      @id @default(autoincrement())
-  pedido_id   Int
-  producto_id Int
-  cantidad    Int
-  subtotal    Float
-  pedido      Pedido   @relation(fields: [pedido_id], references: [id])
-  producto    Producto @relation(fields: [producto_id], references: [id])
+  name        String   @db.VarChar(255)
+  address     String   @db.Text
+  phone       String?  @db.VarChar(20)
+  email       String?  @db.VarChar(255)
+  capacity    Int
+  openingTime String   @map("opening_time") @db.VarChar(5)
+  closingTime String   @map("closing_time") @db.VarChar(5)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  products        Product[]
+  orders          Order[]
+  reservations    Reservation[]
+  availableSlots  AvailableSlot[]
+
+  @@map("restaurants")
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(255)
+  descripcion  String?  @db.Text
+  precio       Decimal  @db.Decimal(10, 2)
+  imagen       String?  @db.VarChar(500)
+  disponible   Boolean  @default(true)
+  restaurantId Int      @map("restaurant_id")
+  categoryId   Int      @map("category_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id])
+  category     Category      @relation(fields: [categoryId], references: [id])
+  orderItems   OrderItem[]
+  cartItems    CartItem[]
+
+  @@map("productos")
+}
+
+model Order {
+  id                  Int       @id @default(autoincrement())
+  fecha               DateTime  @default(now())
+  total               Decimal   @db.Decimal(10, 2)
+  estado              String    @default("pendiente") @db.VarChar(50)
+  cliente             String?   @db.VarChar(255)
+  userId              Int       @map("user_id")
+  restaurantId        Int       @map("restaurant_id")
+  orderNumber         String    @unique @map("order_number") @db.VarChar(50)
+  orderType           OrderType @default(DINE_IN) @map("order_type")
+  deliveryAddress     String?   @map("delivery_address") @db.Text
+  specialInstructions String?   @map("special_instructions") @db.Text
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relaciones
+  user       User        @relation(fields: [userId], references: [id])
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("pedidos")
+}
+
+model OrderItem {
+  id                  Int     @id @default(autoincrement())
+  orderId             Int     @map("pedido_id")
+  productId           Int     @map("producto_id")
+  cantidad            Int
+  subtotal            Decimal @db.Decimal(10, 2)
+  unitPrice           Decimal @map("unit_price") @db.Decimal(10, 2)
+  specialInstructions String? @map("special_instructions") @db.Text
+
+  // Relaciones
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("detalle_pedidos")
+}
+
+model Reservation {
+  id              Int               @id @default(autoincrement())
+  userId          Int               @map("user_id")
+  restaurantId    Int               @map("restaurant_id")
+  reservationDate DateTime          @map("reservation_date") @db.Date
+  reservationTime String            @map("reservation_time") @db.VarChar(5)
+  partySize       Int               @map("party_size")
+  status          ReservationStatus @default(PENDING)
+  specialRequests String?           @map("special_requests") @db.Text
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  // Relaciones
+  user       User       @relation(fields: [userId], references: [id])
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@map("reservations")
+}
+
+model AvailableSlot {
+  id                  Int      @id @default(autoincrement())
+  restaurantId        Int      @map("restaurant_id")
+  date                DateTime @db.Date
+  time                String   @db.VarChar(5)
+  maxCapacity         Int      @map("max_capacity")
+  currentReservations Int      @default(0) @map("current_reservations")
+  isAvailable         Boolean  @default(true) @map("is_available")
+
+  // Relaciones
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@map("available_slots")
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  productId Int      @map("product_id")
+  quantity  Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("cart")
+}
+
+// Enums
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+enum OrderType {
+  PICKUP
+  DELIVERY
+  DINE_IN
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
 }
