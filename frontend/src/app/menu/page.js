@@ -47,7 +47,7 @@ export default function MenuPage() {
             >
               {prod.imagen ? (
                 <img
-                  src={prod.imagen}
+                  src={`http://localhost:3001${prod.imagen}`}
                   alt={prod.nombre}
                   style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '6px' }}
                 />

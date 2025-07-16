@@ -26,20 +26,18 @@ export default function Page() {
     fetchProductos()
   }, [])
 
-  const onFormSubmit = async (data) => {
+  const onFormSubmit = async (formData) => {
     try {
       let res
       if (editProducto) {
         res = await fetch(`http://localhost:3001/api/productos/${editProducto.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: formData,  // 👈 Ahora es un FormData, no JSON
         })
       } else {
         res = await fetch('http://localhost:3001/api/productos', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: formData,  // 👈 Ahora es un FormData, no JSON
         })
       }
       if (!res.ok) throw new Error('Error al guardar producto')

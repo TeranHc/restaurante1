@@ -7,12 +7,12 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
     nombre: '',
     descripcion: '',
     precio: '',
-    imagen: '',
     disponible: true,
     categoryId: '',
     restaurantId: '',
   })
 
+  const [imagenFile, setImagenFile] = useState(null)
   const [categorias, setCategorias] = useState([])
   const [restaurantes, setRestaurantes] = useState([])
 
@@ -29,19 +29,23 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
   useEffect(() => {
     if (producto) {
       setFormData({
-        ...producto,
+        nombre: producto.nombre || '',
+        descripcion: producto.descripcion || '',
         precio: producto.precio?.toString() || '',
+        disponible: producto.disponible ?? true,
+        categoryId: producto.categoryId || '',
+        restaurantId: producto.restaurantId || '',
       })
     } else {
       setFormData({
         nombre: '',
         descripcion: '',
         precio: '',
-        imagen: '',
         disponible: true,
         categoryId: '',
         restaurantId: '',
       })
+      setImagenFile(null)
     }
   }, [producto])
 
@@ -53,9 +57,26 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleImageChange = (e) => {
+    setImagenFile(e.target.files[0])  // Guarda el archivo seleccionado
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit(formData)
+
+    const data = new FormData()
+
+    // Agregar los campos de texto al FormData
+    Object.keys(formData).forEach(key => {
+      data.append(key, formData[key])
+    })
+
+    // Agregar la imagen solo si fue seleccionada
+    if (imagenFile) {
+      data.append('imagen', imagenFile)
+    }
+
+    onSubmit(data)
   }
 
   const inputStyle = {
@@ -76,7 +97,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-      {['nombre', 'descripcion', 'precio', 'imagen'].map((field) => (
+      {['nombre', 'descripcion', 'precio'].map((field) => (
         <input
           key={field}
           name={field}
@@ -87,6 +108,13 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
           style={inputStyle}
         />
       ))}
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        style={inputStyle}
+      />
 
       <label style={{ marginLeft: '1rem' }}>
         Disponible:
