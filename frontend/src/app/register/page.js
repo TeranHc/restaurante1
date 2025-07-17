@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { authService } from '../services/auth' // Ajusta la ruta según tu estructura
 
 export default function BellaVistaRegister() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -78,30 +81,45 @@ export default function BellaVistaRegister() {
     setIsLoading(true)
     
     try {
-      // Simulación de API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Preparar datos para envío (excluyendo confirmPassword)
+      // Preparar datos para el backend según tu estructura
       const userData = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone || null,
         password: formData.password,
-        role: 'CLIENT', // Por defecto
+        role: 'CLIENT', // Por defecto CLIENT
         newsletter: formData.newsletter
       }
       
-      console.log('Registro exitoso:', userData)
+      // Llamar al servicio de registro
+      const response = await authService.register(userData)
       
-      // En una app real, manejarías el registro aquí
-      alert('¡Registro exitoso! Te hemos enviado un correo de confirmación.')
+      console.log('Registro exitoso:', response)
+      
+      // Mostrar mensaje de éxito
+      //alert('¡Registro exitoso! Bienvenido a Bella Vista.')
+      
+      // Redirigir al dashboard o página principal
+      router.push('/') // Ajusta la ruta según tu aplicación
       
     } catch (error) {
       console.error('Error en registro:', error)
-      setErrors({ 
-        general: 'Error de conexión. Por favor intenta nuevamente.' 
-      })
+      
+      // Manejar errores específicos
+      if (error.message.includes('Ya existe un usuario con este email')) {
+        setErrors({ 
+          email: 'Ya existe una cuenta con este email' 
+        })
+      } else if (error.message.includes('Email, contraseña, nombre y apellido son requeridos')) {
+        setErrors({ 
+          general: 'Por favor completa todos los campos obligatorios' 
+        })
+      } else {
+        setErrors({ 
+          general: error.message || 'Error de conexión. Por favor intenta nuevamente.' 
+        })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -119,7 +137,7 @@ export default function BellaVistaRegister() {
 
       {/* Partículas flotantes */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 20)].map((_, i) => (
+        {[...Array(20)].map((_, i) => (
           <div
             key={i}
             className="absolute animate-pulse"
@@ -136,7 +154,7 @@ export default function BellaVistaRegister() {
       </div>
 
       <div className="w-full max-w-lg sm:max-w-xl lg:max-w-2xl relative z-10">
-        {/* Logo y título - Más compacto */}
+        {/* Logo y título */}
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
             <div className="relative">
@@ -154,7 +172,7 @@ export default function BellaVistaRegister() {
           </p>
         </div>
 
-        {/* Formulario de registro - Contenedor más ancho */}
+        {/* Formulario de registro */}
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-white/20 shadow-2xl">
           <div className="text-center mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">¡Únete a nosotros!</h2>
@@ -166,13 +184,14 @@ export default function BellaVistaRegister() {
               <p className="text-red-200 text-sm text-center">{errors.general}</p>
             </div>
           )}
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             {/* Nombre y Apellido */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-1">
-                  Nombre
+                  Nombre *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -197,7 +216,7 @@ export default function BellaVistaRegister() {
 
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-1">
-                  Apellido
+                  Apellido *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -224,7 +243,7 @@ export default function BellaVistaRegister() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-                Correo Electrónico
+                Correo Electrónico *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -273,7 +292,7 @@ export default function BellaVistaRegister() {
             {/* Contraseña */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-                Contraseña
+                Contraseña *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -315,7 +334,7 @@ export default function BellaVistaRegister() {
             {/* Confirmar Contraseña */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1">
-                Confirmar Contraseña
+                Confirmar Contraseña *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -354,7 +373,7 @@ export default function BellaVistaRegister() {
               {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
             </div>
 
-            {/* Términos y condiciones - Espaciado reducido */}
+            {/* Términos y condiciones */}
             <div className="space-y-2">
               <div className="flex items-start">
                 <input
@@ -411,8 +430,8 @@ export default function BellaVistaRegister() {
                 'Crear Cuenta'
               )}
             </button>
-          </form>
-
+          </div>
+        </form>      
           {/* Divider */}
           <div className="my-6">
             <div className="relative">
