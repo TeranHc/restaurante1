@@ -1,8 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function BellaVistaLogin() {
+  const router = useRouter()
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -45,43 +49,56 @@ export default function BellaVistaLogin() {
     return Object.keys(newErrors).length === 0
   }
 
-const [isMobile, setIsMobile] = useState(false)
-useEffect(() => {
-  const checkMobile = () => {
-    setIsMobile(window.innerWidth < 768)
-  }
-  
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
-  
-  return () => window.removeEventListener('resize', checkMobile)
-}, [])
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
     if (!validateForm()) return
-    
     setIsLoading(true)
-    
+
     try {
-      // Simulación de API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Simular respuesta exitosa
-      console.log('Login exitoso:', formData)
-      
-      // En una app real, manejarías la autenticación aquí
-      alert('¡Login exitoso! (Simulación)')
-      
-    } catch (error) {
-      console.error('Error en login:', error)
-      setErrors({ 
-        general: 'Error de conexión. Por favor intenta nuevamente.' 
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       })
-    } finally {
-      setIsLoading(false)
-    }
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Usuario o contraseña incorrecta')
+      }
+
+      // Guardamos el token y el rol del usuario
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('userRole', data.user.role)
+      localStorage.setItem('userName', data.user.firstName)
+      localStorage.setItem('userEmail', data.user.email)
+
+      // Redirección según el rol
+      if (data.user.role === 'ADMIN') {
+        window.location.href = '/productos'
+      } else {
+        window.location.href = '/'
+      }
+
+      } catch (error) {
+        setErrors({
+          general: error.message || 'Ocurrió un error en el inicio de sesión'
+        })
+      } finally {
+        setIsLoading(false)
+      }
   }
 
   return (
@@ -144,7 +161,7 @@ useEffect(() => {
             </div>
           )}
 
-          <div className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">
@@ -226,9 +243,9 @@ useEffect(() => {
                   Recordar contraseña
                 </label>
               </div>
-              <a href="/forgot-password" className="text-xs sm:text-sm text-amber-400 hover:text-amber-300 transition-colors">
+              <Link href="/forgot-password" className="text-xs sm:text-sm text-amber-400 hover:text-amber-300 transition-colors">
                 ¿Olvidaste tu contraseña?
-              </a>
+              </Link>
             </div>
 
             {/* Botón de submit */}
@@ -249,7 +266,7 @@ useEffect(() => {
                 'Iniciar Sesión'
               )}
             </button>
-          </div>
+          </form>
 
           {/* Divider */}
           <div className="my-4 sm:my-6">
@@ -267,13 +284,13 @@ useEffect(() => {
           <div className="text-center">
             <p className="text-gray-300 text-xs sm:text-sm">
               ¿No tienes cuenta?{' '}
-              <a href="/register" className="text-amber-400 hover:text-amber-300 font-medium transition-colors">
+              <Link href="/register" className="text-amber-400 hover:text-amber-300 font-medium transition-colors">
                 Regístrate aquí
-              </a>
+              </Link>
             </p>
           </div>
         </div>
       </div>
     </div>
   )
-}   
+}
