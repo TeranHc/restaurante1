@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import ModalProductos from '../productos/Modal'
-import ModalCategorias from '../categorias/Modal'  // Asegúrate de ajustar la ruta
+import ModalCategorias from '../categorias/Modal'
+import ModalRestaurantes from '../restaurantes/Modal'  // Asegúrate de que esta ruta sea correcta
 
 export default function MenuPage() {
   const [productos, setProductos] = useState([])
   const [loading, setLoading] = useState(false)
   const [modalOpenProductos, setModalOpenProductos] = useState(false)
   const [modalOpenCategorias, setModalOpenCategorias] = useState(false)
+  const [modalOpenRestaurantes, setModalOpenRestaurantes] = useState(false)
 
   const fetchProductos = async () => {
     setLoading(true)
@@ -55,6 +57,16 @@ export default function MenuPage() {
             >
               Gestionar Categorías
             </button>
+            <button
+              onClick={() => {
+                setModalOpenProductos(false);
+                setModalOpenCategorias(false);
+                setModalOpenRestaurantes(true);
+              }}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200"
+            >
+              Gestionar Restaurantes
+            </button>
           </div>
         </div>
       </div>
@@ -95,6 +107,29 @@ export default function MenuPage() {
               <div className="mt-4 text-right">
                 <button
                   onClick={() => setModalOpenCategorias(false)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modal Restaurantes */}
+      {modalOpenRestaurantes && (
+        <>
+          <div
+            onClick={() => setModalOpenRestaurantes(false)}
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          />
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-4 w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto shadow-xl">
+              <ModalRestaurantes open={modalOpenRestaurantes} onClose={() => setModalOpenRestaurantes(false)} />
+              <div className="mt-4 text-right">
+                <button
+                  onClick={() => setModalOpenRestaurantes(false)}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
                 >
                   Cerrar
