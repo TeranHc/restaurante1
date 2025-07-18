@@ -247,4 +247,8 @@ export default function ModalProductos({ open, onClose }) {
       </>
     )
   )
+<<<<<<< HEAD:frontend/src/app/productos/Modal.js
 }
+=======
+}
+>>>>>>> b88896e4b1d9a26072ddd5e0cfa18a8fdf50f4b4:frontend/src/app/(admin)/admin/productos/Modal.js

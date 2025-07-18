@@ -98,4 +98,8 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel }) {
       </div>
     </form>
   )
+<<<<<<< HEAD:frontend/src/app/categorias/ModalForm.js
 }
+=======
+}
+>>>>>>> b88896e4b1d9a26072ddd5e0cfa18a8fdf50f4b4:frontend/src/app/(admin)/admin/categorias/ModalForm.js

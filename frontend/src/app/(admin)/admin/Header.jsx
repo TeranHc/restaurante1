@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
-import LoginButton from '../login/LoginButton'
+import LoginButton from '../../login/LoginButton'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -40,12 +40,11 @@ export default function Header() {
           {/* CENTRO: Navegación (solo desktop) */}
           <nav className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
             {[
-              { href: '/', label: 'Inicio' },
-              { href: '/menu', label: 'Carta' },
-              { href: '/reservas', label: 'Reservas' },
-              { href: '/eventos', label: 'Eventos' },
-              { href: '/nosotros', label: 'Historia' },
-              { href: '/contacto', label: 'Contacto' }
+              { href: '/admin/menu', label: 'Carta' },
+              { href: '/admin/reservas', label: 'Reservas' },
+              { href: '/admin/restaurantes', label: 'Restaurantes' },
+              { href: '/admin/categorias', label: 'Categoria' },
+              { href: '/admin/productos', label: 'Productos' }
             ].map((item) => (
               <Link
                 key={item.href}
@@ -100,12 +99,11 @@ export default function Header() {
         <div className={`lg:hidden transition-all duration-500 overflow-hidden ${isMenuOpen ? 'max-h-[500px] mt-4' : 'max-h-0'}`}>
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 space-y-4">
             {[
-              { href: '/', label: 'Inicio', icon: '🏠' },
-              { href: '/menu', label: 'Carta', icon: '📋' },
-              { href: '/reservas', label: 'Reservas', icon: '🗓️' },
-              { href: '/eventos', label: 'Eventos', icon: '🎉' },
-              { href: '/nosotros', label: 'Historia', icon: '📖' },
-              { href: '/contacto', label: 'Contacto', icon: '📞' }
+              { href: '/menu', label: 'Carta' },
+              { href: '/reservas', label: 'Reservas' },
+              { href: '/restaurantes', label: 'Restaurantes' },
+              { href: '/categorias', label: 'Categoria' },
+              { href: '/productos', label: 'Productos' }
             ].map((item) => (
               <Link key={item.href} href={item.href} className="flex items-center space-x-3 text-gray-300 hover:text-amber-400">
                 <span>{item.icon}</span>

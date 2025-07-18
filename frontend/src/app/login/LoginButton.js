@@ -83,7 +83,8 @@ export default function LoginButton() {
     localStorage.removeItem('userId')
     setUser(null)
     setIsDropdownOpen(false)
-    router.push('/')
+    window.location.href = '/'
+
   }
 
   // Mostrar loading mientras se verifica la autenticación
