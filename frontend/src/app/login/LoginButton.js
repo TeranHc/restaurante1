@@ -165,7 +165,7 @@ export default function LoginButton() {
             
             {user.role === 'ADMIN' && (
               <Link
-                href="/productos"
+                href="/admin/dashboard "
                 className="flex items-center space-x-3 px-3 py-2 text-gray-300 hover:bg-gray-700/50 hover:text-amber-400 transition-colors rounded-md"
                 onClick={() => setIsDropdownOpen(false)}
               >
