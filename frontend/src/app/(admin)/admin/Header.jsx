@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
-import LoginButton from '../login/LoginButton'
+import LoginButton from '../../login/LoginButton'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -43,9 +43,9 @@ export default function Header() {
               { href: '/', label: 'Inicio' },
               { href: '/menu', label: 'Carta' },
               { href: '/reservas', label: 'Reservas' },
-              { href: '/eventos', label: 'Eventos' },
-              { href: '/nosotros', label: 'Historia' },
-              { href: '/contacto', label: 'Contacto' }
+              { href: '/restaurantes', label: 'Restaurantes' },
+              { href: '/categorias', label: 'Categoria' },
+              { href: '/productos', label: 'Productos' }
             ].map((item) => (
               <Link
                 key={item.href}

@@ -74,6 +74,11 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault()
 
+    if (isNaN(parseFloat(formData.precio)) || parseFloat(formData.precio) <= 0) {
+      alert('Ingrese un precio válido mayor que cero')
+      return
+    }
+
     const data = new FormData()
 
     Object.keys(formData).forEach(key => {
@@ -109,7 +114,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-      {['nombre', 'descripcion', 'precio'].map((field) => (
+      {['nombre', 'descripcion'].map((field) => (
         <input
           key={field}
           name={field}
@@ -121,14 +126,27 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
         />
       ))}
 
+      <input
+        key="precio"
+        name="precio"
+        placeholder="precio"
+        type="number"
+        step="0.01"
+        min="0.01"
+        value={formData.precio}
+        onChange={handleChange}
+        required
+        style={inputStyle}
+      />
+
       {producto?.imagen && !eliminarImagen && (
         <div style={{ marginBottom: '0.5rem' }}>
-          {/* <img
+          <img
             src={producto.imagen}
             alt="Imagen actual"
             style={{ width: '120px', borderRadius: '6px', display: 'block', marginBottom: '0.3rem' }}
-          /> */}
-          {/* <button
+          />
+          <button
             type="button"
             onClick={handleEliminarImagen}
             style={{
@@ -137,9 +155,10 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
               color: 'white',
               fontSize: '0.8rem',
             }}
+            title="Eliminar imagen actual"
           >
             Eliminar Imagen
-          </button> */}
+          </button>
         </div>
       )}
 
@@ -149,19 +168,21 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
           accept="image/*"
           onChange={handleImageChange}
           style={inputStyle}
+          aria-label="Subir imagen del producto"
         />
       )}
 
-      <label style={{ marginLeft: '1rem' }}>
+      <label htmlFor="disponible" style={{ marginLeft: '1rem' }}>
         Disponible:
-        <input
-          type="checkbox"
-          name="disponible"
-          checked={formData.disponible}
-          onChange={handleChange}
-          style={{ marginLeft: '0.5rem' }}
-        />
       </label>
+      <input
+        type="checkbox"
+        name="disponible"
+        id="disponible"
+        checked={formData.disponible}
+        onChange={handleChange}
+        style={{ marginLeft: '0.5rem' }}
+      />
 
       <br />
 

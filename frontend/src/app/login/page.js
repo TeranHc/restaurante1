@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import FloatingParticles from './FloatingParticles' // ajusta la ruta si está en otra carpeta
+
 
 export default function BellaVistaLogin() {
   const router = useRouter()
@@ -87,7 +89,7 @@ export default function BellaVistaLogin() {
 
       // Redirección según el rol
       if (data.user.role === 'ADMIN') {
-        window.location.href = '/productos'
+        window.location.href = '/admin/dashboard'
       } else {
         window.location.href = '/'
       }
@@ -102,7 +104,7 @@ export default function BellaVistaLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
+    <div className=" mt-1 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
       {/* Fondo decorativo - Optimizado para móvil */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-600/20 to-transparent"></div>
@@ -112,22 +114,8 @@ export default function BellaVistaLogin() {
       </div>
 
       {/* Partículas flotantes - Reducidas en móvil */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(isMobile ? 10 : 20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute animate-pulse"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 2}s`
-            }}
-          >
-            <div className="w-1 h-1 bg-amber-400/30 rounded-full"></div>
-          </div>
-        ))}
-      </div>
+      <FloatingParticles isMobile={isMobile} />
+
 
       <div className="w-full max-w-sm sm:max-w-md relative z-10">
         {/* Logo y título - Optimizado para móvil */}
