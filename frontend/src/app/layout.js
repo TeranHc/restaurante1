@@ -1,6 +1,7 @@
+// src/app/layout.js
 import './globals.css'
-import Header from './Components/Header.jsx'
-import Footer from './Components/Footer.jsx'
+
+import LayoutWithHeader from './Components/LayoutWithHeader'
 
 export const metadata = {
   title: 'Restaurante Delicioso',
@@ -11,9 +12,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body className="overflow-x-hidden bg-gray-50 text-gray-900 font-sans flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow mt-1">{children}</main>
-        <Footer />
+        <LayoutWithHeader>{children}</LayoutWithHeader>
       </body>
     </html>
   )
