@@ -34,8 +34,8 @@ export default function ProductoForm({ producto, onSubmit, onCancel, disabled })
         descripcion: producto.descripcion || '',
         precio: producto.precio?.toString() || '',
         disponible: producto.disponible ?? true,
-        categoryId: producto.categoryId || '',
-        restaurantId: producto.restaurantId || '',
+        categoryId: producto.category_id || '',
+        restaurantId: producto.restaurant_id || '',
       })
       setEliminarImagen(false)
       setImagenFile(null)
