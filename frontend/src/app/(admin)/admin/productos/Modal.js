@@ -205,8 +205,8 @@ export default function ModalProductos({ open, onClose }) {
                         <td style={styles.td}>
                           ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}
                         </td>
-                        <td style={styles.td}>{prod.category?.name}</td>
-                        <td style={styles.td}>{prod.restaurant?.name}</td>
+                        <td style={styles.td}>{prod.categories?.name}</td>
+                        <td style={styles.td}>{prod.restaurants?.name}</td>
                         <td style={styles.td}>{prod.disponible ? 'Sí' : 'No'}</td>
                         <td style={styles.td}>
                           <button
