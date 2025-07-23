@@ -14,7 +14,7 @@ export default function ModalRestaurantes({ open, onClose }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('http://localhost:3001/api/restaurantes')
+      const res = await fetch('http://localhost:3001/api/restaurants')
       if (!res.ok) throw new Error('Error al cargar restaurantes')
       const data = await res.json()
       setRestaurantes(data)
@@ -42,8 +42,8 @@ export default function ModalRestaurantes({ open, onClose }) {
     setError(null)
     try {
       const url = editRestaurante
-        ? `http://localhost:3001/api/restaurantes/${editRestaurante.id}`
-        : 'http://localhost:3001/api/restaurantes'
+        ? `http://localhost:3001/api/restaurants/${editRestaurante.id}`
+        : 'http://localhost:3001/api/restaurants'
       const method = editRestaurante ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
@@ -67,7 +67,7 @@ export default function ModalRestaurantes({ open, onClose }) {
     setSaving(true)
     setError(null)
     try {
-      const res = await fetch(`http://localhost:3001/api/restaurantes/${id}`, {
+      const res = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Error al eliminar restaurante')

@@ -22,7 +22,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
       .then(res => res.json())
       .then(setCategorias)
 
-    fetch('http://localhost:3001/api/restaurantes')
+    fetch('http://localhost:3001/api/restaurants')
       .then(res => res.json())
       .then(setRestaurantes)
   }, [])
@@ -70,31 +70,23 @@ export default function ProductoForm({ producto, onSubmit, onCancel }) {
     setEliminarImagen(true)
     setImagenFile(null)
   }
-
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (isNaN(parseFloat(formData.precio)) || parseFloat(formData.precio) <= 0) {
-      alert('Ingrese un precio válido mayor que cero')
-      return
+      alert('Ingrese un precio válido mayor que cero');
+      return;
     }
 
-    const data = new FormData()
+  // Enviar solo el objeto plano (sin FormData ni archivos)
+  onSubmit({
+    ...formData,
+    precio: parseFloat(formData.precio),
+    category_Id: parseInt(formData.categoryId),
+    restaurant_Id: parseInt(formData.restaurantId),
+  });
+};
 
-    Object.keys(formData).forEach(key => {
-      data.append(key, formData[key])
-    })
-
-    if (imagenFile) {
-      data.append('imagen', imagenFile)
-    }
-
-    if (eliminarImagen) {
-      data.append('eliminarImagen', 'true')
-    }
-
-    onSubmit(data)
-  }
 
   const inputStyle = {
     margin: '0.3rem',

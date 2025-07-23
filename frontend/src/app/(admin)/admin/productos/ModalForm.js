@@ -22,7 +22,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel, disabled })
       .then(res => res.json())
       .then(setCategorias)
 
-    fetch('http://localhost:3001/api/restaurantes')
+    fetch('http://localhost:3001/api/restaurants')
       .then(res => res.json())
       .then(setRestaurantes)
   }, [])

@@ -1,119 +1,179 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-export default function LoginButton() {
+export default function LoginButton({ isMobile = false }) {
+  const router = useRouter()
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
-  const router = useRouter()
 
-  // Verificar si el usuario está autenticado
+  // Verificar si el usuario está autenticado al cargar el componente
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        const userName = localStorage.getItem('userName')
-        const userEmail = localStorage.getItem('userEmail')
-        const userRole = localStorage.getItem('userRole')
-        
-        if (token && userName && userEmail && userRole) {
-          // Verificar token con el backend
-          const response = await fetch('http://localhost:3001/api/auth/verify', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-
-          if (response.ok) {
-            const userData = await response.json()
-            setUser(userData)
-          } else {
-            // Token inválido, usar datos del localStorage como respaldo
-            setUser({
-              name: userName,
-              email: userEmail,
-              role: userRole
-            })
-          }
-        }
-      } catch (error) {
-        console.error('Error verificando autenticación:', error)
-        // En caso de error, usar datos del localStorage si existen
-        const userName = localStorage.getItem('userName')
-        const userEmail = localStorage.getItem('userEmail')
-        const userRole = localStorage.getItem('userRole')
-        
-        if (userName && userEmail && userRole) {
-          setUser({
-            name: userName,
-            email: userEmail,
-            role: userRole
-          })
-        }
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    checkAuth()
+    checkAuthStatus()
   }, [])
 
-  // Cerrar dropdown al hacer clic fuera
+  // Cerrar dropdown al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false)
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
-  // Función para cerrar sesión
-  const handleLogout = () => {
+  const checkAuthStatus = async () => {
+    const token = localStorage.getItem('token')
+    
+    if (!token) {
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      console.log('Verificando token:', token) // Debug
+      
+      // Verificar el token con el backend
+      const response = await fetch('http://localhost:3001/api/auth/verify-token', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      console.log('Response status:', response.status) // Debug
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Response data:', result) // Debug
+        
+        // Ajustar según la estructura de tu respuesta
+        // Puede ser result.user, result.data, o directamente result
+        const userData = result.user || result.data || result
+        
+        console.log('User data:', userData) // Debug
+        setUser(userData)
+        
+        // Actualizar localStorage con los datos más recientes
+        if (userData) {
+          localStorage.setItem('userRole', userData.role || '')
+          localStorage.setItem('userName', userData.firstName || userData.name || '')
+          localStorage.setItem('userEmail', userData.email || '')
+        }
+      } else {
+        console.error('Token verification failed:', response.status)
+        // Token inválido, limpiar localStorage
+        clearLocalStorage()
+      }
+    } catch (error) {
+      console.error('Error verificando token:', error)
+      // En caso de error de red, usar datos de localStorage como fallback
+      const fallbackUser = {
+        firstName: localStorage.getItem('userName'),
+        email: localStorage.getItem('userEmail'),
+        role: localStorage.getItem('userRole')
+      }
+      
+      // Solo usar fallback si tenemos al menos el nombre
+      if (fallbackUser.firstName) {
+        console.log('Using fallback user data:', fallbackUser)
+        setUser(fallbackUser)
+      } else {
+        clearLocalStorage()
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const clearLocalStorage = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('userRole')
     localStorage.removeItem('userName')
     localStorage.removeItem('userEmail')
-    localStorage.removeItem('userId')
     setUser(null)
-    setIsDropdownOpen(false)
-    window.location.href = '/'
-
   }
 
-  // Mostrar loading mientras se verifica la autenticación
+  const handleLogout = () => {
+    clearLocalStorage()
+    setIsDropdownOpen(false)
+    router.push('/')
+  }
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen)
+  }
+
+  // Mostrar loading mientras verifica el token
   if (isLoading) {
     return (
-      <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg px-5 py-2">
-        <div className="animate-spin w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full"></div>
-        <span className="text-sm font-medium text-gray-300">Cargando...</span>
+      <div className="flex items-center">
+        <div className="animate-pulse bg-white/10 rounded-lg px-4 py-2">
+          <div className="h-4 bg-white/20 rounded w-20"></div>
+        </div>
       </div>
     )
   }
 
-  // Si no hay usuario autenticado, mostrar botón de login
+  // Si NO hay usuario autenticado, mostrar botón de login
   if (!user) {
     return (
-      <Link href="/login" className="group">
-        <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg px-5 py-2 hover:bg-white/10 hover:border-amber-400/50 transition-all duration-300">
-          <svg className="w-5 h-5 text-gray-300 group-hover:text-amber-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-          </svg>
-          <span className="text-sm font-medium text-gray-300 group-hover:text-amber-400 transition-colors">
-            Iniciar Sesión
-          </span>
-        </div>
+      <Link
+        href="/login"
+        className={`${
+          isMobile 
+            ? 'w-full bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-center text-sm font-medium transition'
+            : 'bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition'
+        }`}
+      >
+        Iniciar Sesión
       </Link>
     )
   }
 
-  // Si hay usuario autenticado, mostrar dropdown con su nombre
+  // Si hay usuario autenticado, mostrar dropdown
+  if (isMobile) {
+    // Versión móvil - sin dropdown, solo opciones listadas
+    return (
+      <div className="w-full space-y-2 border-t border-white/10 pt-2">
+        <div className="text-center py-2">
+          <p className="text-white font-medium text-sm">{user.firstName || user.name || 'Usuario'}</p>
+          <p className="text-gray-300 text-xs">{user.email || 'Sin email'}</p>
+          <span className="inline-block bg-amber-500/20 text-amber-400 px-2 py-1 rounded text-xs font-medium mt-1">
+            {user.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
+          </span>
+        </div>
+        
+        <Link href="/profile" className="block w-full text-left text-gray-300 hover:text-white text-sm py-2 px-2 rounded hover:bg-white/10 transition">
+          👤 Mi Perfil
+        </Link>
+        
+        {user.role === 'ADMIN' && (
+          <Link href="/admin/dashboard" className="block w-full text-left text-gray-300 hover:text-white text-sm py-2 px-2 rounded hover:bg-white/10 transition">
+            ⚙️ Panel de Administración
+          </Link>
+        )}
+        
+        <button
+          onClick={handleLogout}
+          className="block w-full text-left text-red-300 hover:text-red-200 text-sm py-2 px-2 rounded hover:bg-red-500/10 transition"
+        >
+          🚪 Cerrar Sesión
+        </button>
+      </div>
+    )
+  }
+
+   // Si hay usuario autenticado, mostrar dropdown con su nombre
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -122,11 +182,11 @@ export default function LoginButton() {
       >
         <div className="w-5 h-5 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
           <span className="text-white text-xs font-bold">
-            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            {(user.firstName || user.name || 'U').charAt(0).toUpperCase()}
           </span>
         </div>
         <span className="text-sm font-medium text-gray-300 group-hover:text-amber-400 transition-colors">
-          {user.name || 'Usuario'}
+          {user.firstName || user.name || 'Usuario'}
         </span>
         <svg 
           className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
@@ -142,7 +202,7 @@ export default function LoginButton() {
       {isDropdownOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-gray-800 backdrop-blur-xl border border-gray-700/50 rounded-lg shadow-2xl z-50 ring-1 ring-black/5">
           <div className="p-4 border-b border-gray-700/50">
-            <p className="text-sm font-medium text-white">{user.name || 'Usuario'}</p>
+            <p className="text-sm font-medium text-white">{user.firstName || user.name || 'Usuario'}</p>
             <p className="text-xs text-gray-300">{user.email}</p>
             {user.role && (
               <span className="inline-block mt-1 px-2 py-1 text-xs bg-amber-500/20 text-amber-400 rounded">
@@ -163,18 +223,7 @@ export default function LoginButton() {
               <span className="text-sm">Mi Perfil</span>
             </Link>
             
-            {user.role === 'ADMIN' && (
-              <Link
-                href="/admin/dashboard "
-                className="flex items-center space-x-3 px-3 py-2 text-gray-300 hover:bg-gray-700/50 hover:text-amber-400 transition-colors rounded-md"
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <span className="text-sm">Panel de Administración</span>
-              </Link>
-            )}
+
             
             <button
               onClick={handleLogout}

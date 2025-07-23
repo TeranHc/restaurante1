@@ -11,12 +11,21 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
     capacity: '',
     openingTime: '',
     closingTime: '',
-    isActive: true,
+    isActive: true, // valor por defecto siempre presente
   })
 
   useEffect(() => {
     if (restaurante) {
-      setFormData(restaurante)
+      setFormData({
+        name: restaurante.name || '',
+        address: restaurante.address || '',
+        phone: restaurante.phone || '',
+        email: restaurante.email || '',
+        capacity: restaurante.capacity?.toString() || '',
+        openingTime: restaurante.openingTime?.slice(0, 5) || '',
+        closingTime: restaurante.closingTime?.slice(0, 5) || '',
+        isActive: restaurante.isActive ?? true, // fallback a true si es null o undefined
+      })
     } else {
       setFormData({
         name: '',
@@ -33,15 +42,24 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: type === 'checkbox' ? checked : value,
-    })
+    }))
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSubmit(formData)
+
+    const formattedData = {
+      ...formData,
+      capacity: parseInt(formData.capacity) || 0,
+      openingTime: formData.openingTime || '',
+      closingTime: formData.closingTime || '',
+      isActive: !!formData.isActive, // asegura booleano true/false
+    }
+
+    onSubmit(formattedData)
   }
 
   const inputStyle = {
@@ -66,6 +84,7 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
         <input
           key={field}
           name={field}
+          type={field.includes('Time') ? 'time' : field === 'capacity' ? 'number' : 'text'}
           placeholder={field}
           value={formData[field]}
           onChange={handleChange}
@@ -79,7 +98,7 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
         <input
           type="checkbox"
           name="isActive"
-          checked={formData.isActive}
+          checked={!!formData.isActive}
           onChange={handleChange}
           style={{ marginLeft: '0.5rem' }}
         />

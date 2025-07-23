@@ -29,24 +29,38 @@ export default function Page() {
 
   const onFormSubmit = async (formData) => {
     try {
-      let res
-      if (editProducto) {
-        res = await fetch(`http://localhost:3001/api/productos/${editProducto.id}`, {
-          method: 'PUT',
-          body: formData, // Ahora es FormData
-        })
-      } else {
-        res = await fetch('http://localhost:3001/api/productos', {
-          method: 'POST',
-          body: formData,
-        })
+      // Construir data JSON a enviar
+      const dataToSend = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        precio: parseFloat(formData.precio),
+        disponible: formData.disponible,
+        category_id: parseInt(formData.categoryId),
+        restaurant_id: parseInt(formData.restaurantId),
       }
-      if (!res.ok) throw new Error('Error al guardar producto')
+
+      const url = editProducto
+        ? `http://localhost:3001/api/productos/${editProducto.id}`
+        : 'http://localhost:3001/api/productos'
+
+      const method = editProducto ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Error guardando producto')
+      }
+
       await fetchProductos()
       setEditProducto(null)
     } catch (error) {
       console.error(error)
-      alert('Error guardando producto')
+      alert(error.message)
     }
   }
 
@@ -60,7 +74,7 @@ export default function Page() {
       await fetchProductos()
     } catch (error) {
       console.error(error)
-      alert('Error eliminando producto')
+      alert(error.message)
     }
   }
 
@@ -124,7 +138,6 @@ export default function Page() {
             {productos.map((prod) => (
               <tr key={prod.id}>
                 <td style={tdStyle}>{prod.id}</td>
-
                 <td style={tdStyle}>
                   {prod.imagen ? (
                     <img
@@ -136,11 +149,12 @@ export default function Page() {
                     <span>Sin imagen</span>
                   )}
                 </td>
-
                 <td style={tdStyle}>{prod.nombre}</td>
-                <td style={tdStyle}>${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}</td>
-                <td style={tdStyle}>{prod.category?.name}</td>
-                <td style={tdStyle}>{prod.restaurant?.name}</td>
+                <td style={tdStyle}>
+                  ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}
+                </td>
+                <td style={tdStyle}>{prod.categories?.name}</td>
+                <td style={tdStyle}>{prod.restaurants?.name}</td>
                 <td style={tdStyle}>{prod.disponible ? 'Sí' : 'No'}</td>
                 <td style={tdStyle}>
                   <button
