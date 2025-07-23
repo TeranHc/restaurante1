@@ -3,6 +3,22 @@
 import { useState, useEffect } from 'react'
 import RestauranteForm from './ModalForm'
 
+// Hook para detectar móvil sin error de window en SSR
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return isMobile
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+
 export default function ModalRestaurantes({ open, onClose }) {
   const [restaurantes, setRestaurantes] = useState([])
   const [editRestaurante, setEditRestaurante] = useState(null)
@@ -10,11 +26,13 @@ export default function ModalRestaurantes({ open, onClose }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
+  const isMobile = useIsMobile()
+
   const fetchRestaurantes = async () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('http://localhost:3001/api/restaurants')
+      const res = await fetch(`${API_BASE_URL}/restaurants`)
       if (!res.ok) throw new Error('Error al cargar restaurantes')
       const data = await res.json()
       setRestaurantes(data)
@@ -38,12 +56,13 @@ export default function ModalRestaurantes({ open, onClose }) {
   }
 
   const handleFormSubmit = async (formData) => {
+    console.log('Enviando al backend:', formData)
     setSaving(true)
     setError(null)
     try {
       const url = editRestaurante
-        ? `http://localhost:3001/api/restaurants/${editRestaurante.id}`
-        : 'http://localhost:3001/api/restaurants'
+        ? `${API_BASE_URL}/restaurants/${editRestaurante.id}`
+        : `${API_BASE_URL}/restaurants`
       const method = editRestaurante ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
@@ -52,7 +71,10 @@ export default function ModalRestaurantes({ open, onClose }) {
         body: JSON.stringify(formData),
       })
 
-      if (!res.ok) throw new Error('Error guardando restaurante')
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Error guardando restaurante')
+      }
       await fetchRestaurantes()
       setEditRestaurante(null)
     } catch (err) {
@@ -67,7 +89,7 @@ export default function ModalRestaurantes({ open, onClose }) {
     setSaving(true)
     setError(null)
     try {
-      const res = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/restaurants/${id}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Error al eliminar restaurante')
@@ -112,12 +134,12 @@ export default function ModalRestaurantes({ open, onClose }) {
       flex: '1 1 400px',
       borderRight: '1px solid #eee',
       paddingRight: '1.5rem',
-      minWidth: '300px', // Mínimo para evitar que colapse demasiado
+      minWidth: '300px',
     },
     tableWrapper: {
       flex: '2 1 800px',
       overflowY: 'auto',
-      minWidth: '500px', // Mínimo para la tabla
+      minWidth: '500px',
     },
     table: {
       width: '100%',
@@ -134,9 +156,7 @@ export default function ModalRestaurantes({ open, onClose }) {
       color: '#333',
       fontWeight: '600',
       transition: 'background-color 0.3s',
-      '&:hover': {
-        backgroundColor: '#f0f0f0',
-      },
+      cursor: 'default',
     },
     td: {
       borderBottom: '1px solid #eee',
@@ -144,9 +164,6 @@ export default function ModalRestaurantes({ open, onClose }) {
       verticalAlign: 'middle',
       color: '#222',
       transition: 'background-color 0.3s',
-      '&:hover': {
-        backgroundColor: '#fafafa',
-      },
     },
     buttonPrimary: {
       backgroundColor: '#0070f3',
@@ -156,14 +173,7 @@ export default function ModalRestaurantes({ open, onClose }) {
       border: 'none',
       cursor: 'pointer',
       transition: 'background-color 0.3s, transform 0.2s',
-      '&:hover': {
-        backgroundColor: '#005bb5',
-        transform: 'translateY(-1px)',
-      },
-      '&:disabled': {
-        backgroundColor: '#99c2ff',
-        cursor: 'not-allowed',
-      },
+      marginRight: '0.5rem',
     },
     buttonDanger: {
       backgroundColor: '#e00',
@@ -173,14 +183,6 @@ export default function ModalRestaurantes({ open, onClose }) {
       border: 'none',
       cursor: 'pointer',
       transition: 'background-color 0.3s, transform 0.2s',
-      '&:hover': {
-        backgroundColor: '#b30000',
-        transform: 'translateY(-1px)',
-      },
-      '&:disabled': {
-        backgroundColor: '#ff9999',
-        cursor: 'not-allowed',
-      },
     },
     error: {
       color: '#e00',
@@ -197,8 +199,7 @@ export default function ModalRestaurantes({ open, onClose }) {
     },
   }
 
-  // Lógica para colapsar a una columna en pantallas pequeñas
-  const isMobile = window.innerWidth <= 768
+  // Ajustar estilos para móvil
   const containerStyle = {
     ...styles.modalContainer,
     flexDirection: isMobile ? 'column' : 'row',
@@ -221,7 +222,10 @@ export default function ModalRestaurantes({ open, onClose }) {
 
         <div role="dialog" aria-modal="true" style={containerStyle} aria-labelledby="modal-title">
           <div style={formWrapperStyle}>
-            <h2 id="modal-title" style={{ marginBottom: '1rem', fontSize: '1.5rem', fontWeight: '600', color: '#333' }}>
+            <h2
+              id="modal-title"
+              style={{ marginBottom: '1rem', fontSize: '1.5rem', fontWeight: '600', color: '#333' }}
+            >
               Gestión de Restaurantes
             </h2>
             <RestauranteForm
@@ -239,7 +243,9 @@ export default function ModalRestaurantes({ open, onClose }) {
             ) : error ? (
               <div style={styles.error}>{error}</div>
             ) : restaurantes.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#666', padding: '1rem' }}>No hay restaurantes registrados.</p>
+              <p style={{ textAlign: 'center', color: '#666', padding: '1rem' }}>
+                No hay restaurantes registrados.
+              </p>
             ) : (
               <table style={styles.table}>
                 <thead>
@@ -262,7 +268,9 @@ export default function ModalRestaurantes({ open, onClose }) {
                       <td style={styles.td}>{rest.phone}</td>
                       <td style={styles.td}>{rest.email}</td>
                       <td style={styles.td}>{rest.capacity}</td>
-                      <td style={styles.td}>{rest.openingTime} - {rest.closingTime}</td>
+                      <td style={styles.td}>
+                        {rest.opening_time} - {rest.closing_time}
+                      </td>
                       <td style={styles.td}>{rest.isActive ? 'Sí' : 'No'}</td>
                       <td style={styles.td}>
                         <button

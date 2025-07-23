@@ -2,23 +2,32 @@
 
 import { useState, useEffect } from 'react'
 
-export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
+export default function RestauranteForm({ restaurante, onSubmit, onCancel, disabled }) {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     phone: '',
     email: '',
     capacity: '',
-    openingTime: '',
-    closingTime: '',
-    isActive: true,
+    opening_time: '',
+    closing_time: '',
+    is_active: true,
   })
 
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
     if (restaurante) {
-      setFormData(restaurante)
+      setFormData({
+        name: restaurante.name || '',
+        address: restaurante.address || '',
+        phone: restaurante.phone || '',
+        email: restaurante.email || '',
+        capacity: restaurante.capacity !== undefined ? String(restaurante.capacity) : '',
+        opening_time: restaurante.opening_time || '',
+        closing_time: restaurante.closing_time || '',
+        is_active: restaurante.is_active !== undefined ? restaurante.is_active : true,
+      })
     } else {
       setFormData({
         name: '',
@@ -26,9 +35,9 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
         phone: '',
         email: '',
         capacity: '',
-        openingTime: '',
-        closingTime: '',
-        isActive: true,
+        opening_time: '',
+        closing_time: '',
+        is_active: true,
       })
     }
     setErrors({})
@@ -52,15 +61,15 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
         else delete newErrors[name]
         break
       case 'phone':
-        if (!/^\d{10}$/.test(value.replace(/\D/g, ''))) newErrors[name] = 'Debe tener 10 dígitos'
+        if (value && !/^\d{10}$/.test(value.replace(/\D/g, ''))) newErrors[name] = 'Debe tener 10 dígitos'
         else delete newErrors[name]
         break
       case 'email':
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) newErrors[name] = 'Email no válido'
+        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) newErrors[name] = 'Email no válido'
         else delete newErrors[name]
         break
       case 'capacity':
-        if (isNaN(value) || value <= 0) newErrors[name] = 'Debe ser un número positivo'
+        if (value === '' || isNaN(value) || Number(value) <= 0) newErrors[name] = 'Debe ser un número positivo'
         else delete newErrors[name]
         break
       default:
@@ -71,12 +80,17 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const allErrors = {}
-    Object.keys(formData).forEach((key) => validateField(key, formData[key]))
+    let allErrors = {}
+
+    if (!formData.name.trim()) allErrors.name = 'El nombre es obligatorio'
+    if (formData.phone && !/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) allErrors.phone = 'Debe tener 10 dígitos'
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) allErrors.email = 'Email no válido'
+    if (formData.capacity === '' || isNaN(formData.capacity) || Number(formData.capacity) <= 0) allErrors.capacity = 'Debe ser un número positivo'
+
+    setErrors(allErrors)
+
     if (Object.keys(allErrors).length === 0) {
-      onSubmit(formData)
-    } else {
-      setErrors(allErrors)
+      onSubmit({ ...formData, capacity: Number(formData.capacity) })
     }
   }
 
@@ -90,11 +104,6 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
     color: '#333',
     backgroundColor: '#fafafa',
     transition: 'border-color 0.3s, box-shadow 0.3s',
-    '&:focus': {
-      borderColor: '#0070f3',
-      boxShadow: '0 0 5px rgba(0, 112, 243, 0.5)',
-      outline: 'none',
-    },
   }
 
   const labelStyle = {
@@ -114,13 +123,12 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
     padding: '0.75rem 1.5rem',
     borderRadius: '8px',
     border: 'none',
-    cursor: 'pointer',
+    cursor: disabled ? 'not-allowed' : 'pointer',
     fontSize: '1rem',
     fontWeight: '600',
+    backgroundColor: disabled ? '#99c2ff' : '#0070f3',
+    color: 'white',
     transition: 'background-color 0.3s, transform 0.2s',
-    '&:hover': {
-      transform: 'translateY(-2px)',
-    },
   }
 
   const formContainer = {
@@ -143,8 +151,8 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
         { name: 'phone', label: 'Teléfono', type: 'tel' },
         { name: 'email', label: 'Email', type: 'email' },
         { name: 'capacity', label: 'Capacidad', type: 'number', min: '1' },
-        { name: 'openingTime', label: 'Hora de Apertura', type: 'time' },
-        { name: 'closingTime', label: 'Hora de Cierre', type: 'time' },
+        { name: 'opening_time', label: 'Hora de Apertura', type: 'time' },
+        { name: 'closing_time', label: 'Hora de Cierre', type: 'time' },
       ].map(({ name, label, type, required }) => (
         <div key={name} style={{ display: 'flex', flexDirection: 'column' }}>
           <label style={labelStyle}>{label}</label>
@@ -157,6 +165,7 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
             style={inputStyle}
             placeholder={`Ingrese ${label.toLowerCase()}`}
             min={type === 'number' ? '1' : undefined}
+            disabled={disabled}
           />
           {errors[name] && <span style={errorStyle}>{errors[name]}</span>}
         </div>
@@ -165,26 +174,25 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel }) {
       <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', marginTop: '0rem' }}>
         <input
           type="checkbox"
-          name="isActive"
-          checked={formData.isActive}
+          name="is_active"
+          checked={formData.is_active}
           onChange={handleChange}
+          disabled={disabled}
           style={{ marginRight: '0.5rem' }}
         />
         <label style={{ ...labelStyle, margin: 0 }}>Activo</label>
       </div>
 
       <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', marginTop: '0rem' }}>
-        <button
-          type="submit"
-          style={{ ...buttonStyle, backgroundColor: '#0070f3', color: 'white' }}
-        >
+        <button type="submit" style={buttonStyle} disabled={disabled}>
           Guardar
         </button>
         {restaurante && (
           <button
             type="button"
             onClick={onCancel}
-            style={{ ...buttonStyle, backgroundColor: '#e00', color: 'white' }}
+            style={{ ...buttonStyle, backgroundColor: '#e00', cursor: disabled ? 'not-allowed' : 'pointer' }}
+            disabled={disabled}
           >
             Cancelar
           </button>
