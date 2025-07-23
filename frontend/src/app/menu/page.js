@@ -72,7 +72,9 @@ export default function MenuPage() {
                 <div className="relative h-48 overflow-hidden">
                   {prod.imagen ? (
                     <img
-                      src={`http://localhost:3001${prod.imagen}`}
+                      src={prod.imagen?.startsWith('http') 
+                        ? prod.imagen 
+                        : `http://localhost:3001${prod.imagen}`}
                       alt={prod.nombre}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
