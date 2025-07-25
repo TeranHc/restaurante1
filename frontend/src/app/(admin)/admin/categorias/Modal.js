@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { FaSort, FaSortUp, FaSortDown, FaSearch, FaTimes, FaPlus, FaEdit, FaTrash } from 'react-icons/fa'
 import CategoriaForm from './ModalForm'
+import CategoriaCard from './ComponentMovil/CategoriaCard'
 
 export default function ModalCategorias({ open, onClose }) {
   const [categorias, setCategorias] = useState([])
@@ -333,69 +334,28 @@ export default function ModalCategorias({ open, onClose }) {
                   <div className="hidden md:block lg:hidden">
                     <div className="grid gap-4">
                       {sortedCategorias.map(cat => (
-                        <div key={cat.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all group">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-2">
-                                {cat.name}
-                              </h4>
-                              <p className="text-gray-600 leading-relaxed">
-                                {cat.description || (
-                                  <span className="text-gray-400 italic">Sin descripción</span>
-                                )}
-                              </p>
-                            </div>
-                            <div className="flex gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => handleEdit(cat)}
-                                className="w-9 h-9 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-xl flex items-center justify-center transition-colors"
-                              >
-                                <FaEdit className="text-sm" />
-                              </button>
-                              <button
-                                onClick={() => onDelete(cat.id)}
-                                className="w-9 h-9 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl flex items-center justify-center transition-colors"
-                              >
-                                <FaTrash className="text-sm" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                        <CategoriaCard
+                          key={cat.id}
+                          categoria={cat}
+                          onEdit={handleEdit}
+                          onDelete={onDelete}
+                          responsive="md"
+                        />
                       ))}
                     </div>
                   </div>
 
                   {/* Vista de tarjetas para móviles */}
+                  {/* Vista de tarjetas para móviles */}
                   <div className="md:hidden space-y-4">
                     {sortedCategorias.map(cat => (
-                      <div key={cat.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                        <div className="mb-4">
-                          <h4 className="font-semibold text-gray-900 text-base mb-2">
-                            {cat.name}
-                          </h4>
-                          <p className="text-gray-600 text-sm leading-relaxed">
-                            {cat.description || (
-                              <span className="text-gray-400 italic">Sin descripción</span>
-                            )}
-                          </p>
-                        </div>
-                        <div className="flex gap-2 pt-3 border-t border-gray-100">
-                          <button
-                            onClick={() => handleEdit(cat)}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                          >
-                            <FaEdit className="text-sm" />
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => onDelete(cat.id)}
-                            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                          >
-                            <FaTrash className="text-sm" />
-                            Eliminar
-                          </button>
-                        </div>
-                      </div>
+                      <CategoriaCard
+                        key={cat.id}
+                        categoria={cat}
+                        onEdit={handleEdit}
+                        onDelete={onDelete}
+                        responsive="mobile"
+                      />
                     ))}
                   </div>
                 </div>
