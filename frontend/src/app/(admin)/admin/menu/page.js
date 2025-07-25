@@ -1,9 +1,10 @@
     'use client'
 
 import { useState, useEffect } from 'react'
+import { Settings, Tags, Store } from "lucide-react"; 
 import ModalProductos from '../productos/Modal'
 import ModalCategorias from '../categorias/Modal'
-import ModalRestaurantes from '../restaurantes/Modal'  // Asegúrate de que esta ruta sea correcta
+import ModalRestaurantes from '../restaurantes/Modal'
 
 export default function MenuPage() {
   const [productos, setProductos] = useState([])
@@ -36,37 +37,57 @@ export default function MenuPage() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-slate-900 text-center">
-            Nuestro Menú
-          </h1>
-          <p className="text-slate-600 text-center mt-2">
-            Descubre nuestros deliciosos productos
-          </p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            
+            {/* Título */}
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+                Nuestro Menú
+              </h1>
+              <p className="mt-2 text-lg text-slate-500">
+                Descubre nuestros deliciosos productos
+              </p>
+            </div>
 
-          {/* Botones */}
-          <div className="flex justify-center gap-4 mt-4 flex-wrap">
-            <button
-              onClick={() => setModalOpenProductos(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200"
-            >
-              Gestionar Productos
-            </button>
-            <button
-              onClick={() => setModalOpenCategorias(true)}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200"
-            >
-              Gestionar Categorías
-            </button>
-            <button
-              onClick={() => {
-                setModalOpenProductos(false);
-                setModalOpenCategorias(false);
-                setModalOpenRestaurantes(true);
-              }}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200"
-            >
-              Gestionar Restaurantes
-            </button>
+            {/* Enlaces de acción tipo navegación */}
+            <div className="mt-4 md:mt-0 flex justify-center md:justify-end gap-6">
+              <div
+                onClick={() => setModalOpenProductos(true)}
+                className="cursor-pointer text-blue-700 hover:text-blue-900 text-base font-medium relative group transition"
+              >
+                <span className="flex items-center gap-2">
+                  <Settings size={18} className="text-blue-500 group-hover:scale-110 transition" />
+                  Nuevo Producto
+                </span>
+                <span className="block w-0 group-hover:w-full h-0.5 bg-blue-500 transition-all duration-300"></span>
+              </div>
+
+              <div
+                onClick={() => setModalOpenCategorias(true)}
+                className="cursor-pointer text-green-700 hover:text-green-900 text-base font-medium relative group transition"
+              >
+                <span className="flex items-center gap-2">
+                  <Tags size={18} className="text-green-500 group-hover:scale-110 transition" />
+                  Nueva Categoría
+                </span>
+                <span className="block w-0 group-hover:w-full h-0.5 bg-green-500 transition-all duration-300"></span>
+              </div>
+
+              <div
+                onClick={() => {
+                  setModalOpenProductos(false);
+                  setModalOpenCategorias(false);
+                  setModalOpenRestaurantes(true);
+                }}
+                className="cursor-pointer text-yellow-700 hover:text-yellow-800 text-base font-medium relative group transition"
+              >
+                <span className="flex items-center gap-2">
+                  <Store size={18} className="text-yellow-500 group-hover:scale-110 transition" />
+                  Nuevo Restaurante
+                </span>
+                <span className="block w-0 group-hover:w-full h-0.5 bg-yellow-500 transition-all duration-300"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
