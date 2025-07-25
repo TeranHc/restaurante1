@@ -65,75 +65,20 @@ export default function ModalCategorias({ open, onClose }) {
     }
   }
 
-  const styles = {
-    modalOverlay: {
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      zIndex: 1000,
-    },
-    modalContainer: {
-      position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      backgroundColor: '#fff',
-      padding: '2rem',
-      borderRadius: '12px',
-      zIndex: 1001,
-      width: '95vw',
-      maxWidth: '900px',
-      maxHeight: '90vh',
-      overflowY: 'auto',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    },
-    table: {
-      borderCollapse: 'collapse',
-      width: '100%',
-      marginTop: '1rem',
-    },
-    th: {
-      border: '1px solid #ccc',
-      padding: '8px',
-      backgroundColor: '#f0f0f0',
-      color: '#333',
-      textAlign: 'left',
-    },
-    td: {
-      border: '1px solid #ccc',
-      padding: '8px',
-      color: '#333',
-    },
-    buttonPrimary: {
-      backgroundColor: '#0070f3',
-      color: 'white',
-      padding: '0.3rem 0.6rem',
-      borderRadius: '4px',
-      border: 'none',
-      cursor: 'pointer',
-      marginRight: '0.5rem',
-    },
-    buttonDanger: {
-      backgroundColor: '#e00',
-      color: 'white',
-      padding: '0.3rem 0.6rem',
-      borderRadius: '4px',
-      border: 'none',
-      cursor: 'pointer',
-    },
-  }
-
   return (
     open && (
       <>
         <div
           onClick={onClose}
-          style={styles.modalOverlay}
+          className="fixed inset-0 bg-black bg-opacity-50 z-50"
         />
 
-        <div role="dialog" aria-modal="true" style={styles.modalContainer}>
-          <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem', fontWeight: '600', color: '#333' }}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 md:p-8 rounded-xl z-50 w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl"
+        >
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Gestión de Categorías
           </h2>
 
@@ -144,32 +89,32 @@ export default function ModalCategorias({ open, onClose }) {
           />
 
           {loading ? (
-            <p>Cargando categorías...</p>
+            <p className="mt-4 text-gray-600">Cargando categorías...</p>
           ) : categorias.length === 0 ? (
-            <p>No hay categorías registradas.</p>
+            <p className="mt-4 text-gray-600">No hay categorías registradas.</p>
           ) : (
-            <table style={styles.table}>
-              <thead>
+            <table className="w-full border border-gray-200 mt-6 text-sm md:text-base">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th style={styles.th}>Nombre</th>
-                  <th style={styles.th}>Descripción</th>
-                  <th style={styles.th}>Acciones</th>
+                  <th className="border border-gray-200 px-4 py-2 text-left text-gray-700 font-medium">Nombre</th>
+                  <th className="border border-gray-200 px-4 py-2 text-left text-gray-700 font-medium">Descripción</th>
+                  <th className="border border-gray-200 px-4 py-2 text-left text-gray-700 font-medium">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {categorias.map(cat => (
-                  <tr key={cat.id}>
-                    <td style={styles.td}>{cat.name}</td>
-                    <td style={styles.td}>{cat.description || '-'}</td>
-                    <td style={styles.td}>
+                  <tr key={cat.id} className="hover:bg-gray-50">
+                    <td className="border border-gray-200 px-4 py-2 text-gray-800">{cat.name}</td>
+                    <td className="border border-gray-200 px-4 py-2 text-gray-800">{cat.description || '-'}</td>
+                    <td className="border border-gray-200 px-4 py-2">
                       <button
-                        style={styles.buttonPrimary}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded mr-2"
                         onClick={() => setEditCategoria(cat)}
                       >
                         Editar
                       </button>
                       <button
-                        style={styles.buttonDanger}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
                         onClick={() => onDelete(cat.id)}
                       >
                         Eliminar
@@ -181,17 +126,10 @@ export default function ModalCategorias({ open, onClose }) {
             </table>
           )}
 
-          <div style={{ textAlign: 'right', marginTop: '1rem' }}>
+          <div className="text-right mt-6">
             <button
               onClick={onClose}
-              style={{
-                backgroundColor: '#e00',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-              }}
+              className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-md"
             >
               Cerrar
             </button>

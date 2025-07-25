@@ -27,42 +27,26 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel }) {
     setDescription('')
   }
 
-  const inputStyle = {
-    marginRight: '1rem',
-    padding: '0.5rem',
-    borderRadius: '4px',
-    border: '1px solid #666',
-    width: '200px',
-    color: '#333',
-  }
-
-  const buttonStyle = {
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    border: 'none',
-    cursor: 'pointer',
-  }
-
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
+    <form onSubmit={handleSubmit} className="mb-4 flex flex-wrap items-center gap-4">
       <input
         type="text"
         placeholder="Nombre"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
-        style={inputStyle}
+        className="px-3 py-2 border border-gray-400 rounded-md text-gray-800 w-52 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <input
         type="text"
         placeholder="Descripción"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        style={inputStyle}
+        className="px-3 py-2 border border-gray-400 rounded-md text-gray-800 w-52 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button
         type="submit"
-        style={{ ...buttonStyle, backgroundColor: '#0070f3', color: 'white' }}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
       >
         Guardar
       </button>
@@ -70,12 +54,7 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel }) {
         <button
           type="button"
           onClick={onCancel}
-          style={{
-            ...buttonStyle,
-            backgroundColor: '#e00',
-            color: 'white',
-            marginLeft: '0.5rem',
-          }}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
         >
           Cancelar
         </button>
