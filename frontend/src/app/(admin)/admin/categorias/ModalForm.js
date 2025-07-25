@@ -27,74 +27,62 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel }) {
     setDescription('')
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: '0.6rem 0.8rem',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    marginBottom: '1rem',
-    fontSize: '1rem',
-    color: '#333',
-  }
-
-  const buttonStyle = {
-    padding: '0.6rem 1.2rem',
-    borderRadius: '6px',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  }
-
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: '2rem',color: '#111', }}>
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: '500' }}>
-          Nombre de la categoría
-        </label>
-        <input
-          type="text"
-          placeholder="Nombre"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={inputStyle}
-        />
-      </div>
+    <form
+      onSubmit={handleSubmit}
+      className="text-gray-800 p-4 rounded-xl shadow-lg bg-white space-y-6"
+    >
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Columna: Nombre + Botones */}
+        <div className="w-full md:w-1/2 flex flex-col gap-4">
+          <div>
+            <label className="block mb-2 text-sm font-semibold text-gray-700">
+              Nombre de la categoría
+            </label>
+            <input
+              type="text"
+              placeholder="Ej. Bebidas"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            />
+          </div>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: '500' }}>
-          Descripción (opcional)
-        </label>
-        <input
-          type="text"
-          placeholder="Descripción"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          style={inputStyle}
-        />
-      </div>
+          {/* Botones dentro de esta columna */}
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl shadow-md transition duration-200"
+            >
+              Guardar
+            </button>
 
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <button
-          type="submit"
-          style={{ ...buttonStyle, backgroundColor: '#0070f3', color: 'white' }}
-        >
-          Guardar
-        </button>
+            {categoria && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl shadow-md transition duration-200"
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </div>
 
-        {categoria && (
-          <button
-            type="button"
-            onClick={onCancel}
-            style={{
-              ...buttonStyle,
-              backgroundColor: '#e00',
-              color: 'white',
-            }}
-          >
-            Cancelar
-          </button>
-        )}
+        {/* Columna: Descripción */}
+        <div className="w-full md:w-1/2">
+          <label className="block mb-2 text-sm font-semibold text-gray-700">
+            Descripción (opcional)
+          </label>
+          <textarea
+            placeholder="Ej. Categoría para bebidas frías y calientes"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            className="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 resize-none"
+          ></textarea>
+        </div>
       </div>
     </form>
   )

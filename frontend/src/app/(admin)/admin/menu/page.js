@@ -76,7 +76,7 @@ export default function MenuPage() {
         <>
           <div
             onClick={() => setModalOpenProductos(false)}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-opacity-50 z-40"
           />
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
@@ -99,7 +99,7 @@ export default function MenuPage() {
         <>
           <div
             onClick={() => setModalOpenCategorias(false)}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-opacity-50 z-40"
           />
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
@@ -122,7 +122,7 @@ export default function MenuPage() {
         <>
           <div
             onClick={() => setModalOpenRestaurantes(false)}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-opacity-50 z-40"
           />
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto shadow-xl">
