@@ -42,6 +42,7 @@ export default function Header() {
             {[
               { href: '/admin/menu', label: 'Carta' },
               { href: '/admin/reservas', label: 'Reservas' },
+              { href: '/admin/horarios', label: 'Horarios' },
               { href: '/admin/restaurantes', label: 'Restaurantes' },
               { href: '/admin/categorias', label: 'Categoria' },
               { href: '/admin/productos', label: 'Productos' }
@@ -101,6 +102,7 @@ export default function Header() {
             {[
               { href: '/menu', label: 'Carta' },
               { href: '/reservas', label: 'Reservas' },
+              { href: '/horarios', label: 'Horarios' },
               { href: '/restaurantes', label: 'Restaurantes' },
               { href: '/categorias', label: 'Categoria' },
               { href: '/productos', label: 'Productos' }
