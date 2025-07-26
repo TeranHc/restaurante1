@@ -249,9 +249,6 @@ export default function ModalProductos({ open, onClose }) {
                   <h3 className="text-lg font-semibold text-gray-900">
                     Lista de Productos
                   </h3>
-                  <span className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
-                    {filteredAndSortedProductos.length} encontrados
-                  </span>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
