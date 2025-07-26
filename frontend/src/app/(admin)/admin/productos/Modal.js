@@ -156,8 +156,8 @@ export default function ModalProductos({ open, onClose }) {
   const renderSortIcon = (column) => {
     if (sortColumn !== column) return <FaSort className="inline ml-1 text-gray-400" />
     return sortOrder === 'asc'
-      ? <FaSortUp className="inline ml-1 text-blue-600" />
-      : <FaSortDown className="inline ml-1 text-blue-600" />
+      ? <FaSortUp className="inline ml-1 text-orange-600" />
+      : <FaSortDown className="inline ml-1 text-orange-600" />
   }
 
   const getImageUrl = (producto) => {
@@ -189,7 +189,7 @@ export default function ModalProductos({ open, onClose }) {
         style={{ height: 'min(92vh, 900px)' }}
       >
         <div className="h-full flex flex-col">
-          {/* Header del modal */}
+          {/* Header del modal - Siempre fijo */}
           <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-red-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -214,122 +214,123 @@ export default function ModalProductos({ open, onClose }) {
             </div>
           </div>
 
-          {/* Form Section */}
-          {showForm && (
-            <div className="flex-shrink-0 px-6 py-4 bg-gray-50 border-b border-gray-200">
-              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {editProducto ? 'Editar Producto' : 'Nuevo Producto'}
-                  </h3>
-                  <button
-                    onClick={handleCancelForm}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <FaTimes />
-                  </button>
-                </div>
-                <ProductoForm
-                  key={editProducto ? editProducto.id : 'new'}
-                  producto={editProducto}
-                  onSubmit={handleFormSubmit}
-                  onCancel={handleCancelForm}
-                  disabled={saving}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Controls Section */}
-          <div className="flex-shrink-0 px-6 py-4 bg-white border-b border-gray-200">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-              <div className="flex items-center gap-0">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Lista de Productos
-                </h3>
-                <span className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
-                  {filteredAndSortedProductos.length} encontrados
-                </span>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-10">
-                {/* Filtros */}
-                <div className="flex flex-wrap gap-2">
-                  <select
-                    value={filterCategoria}
-                    onChange={(e) => setFilterCategoria(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                  >
-                    <option value="">Todas las categorías</option>
-                    {categorias.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                  
-                  <select
-                    value={filterRestaurante}
-                    onChange={(e) => setFilterRestaurante(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                  >
-                    <option value="">Todos los restaurantes</option>
-                    {restaurantes.map(rest => (
-                      <option key={rest} value={rest}>{rest}</option>
-                    ))}
-                  </select>
-                  
-                  <select
-                    value={filterDisponible}
-                    onChange={(e) => setFilterDisponible(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
-                  >
-                    <option value="">Todos</option>
-                    <option value="true">Disponibles</option>
-                    <option value="false">No disponibles</option>
-                  </select>
-                </div>
-
-                {/* Buscador */}
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-                  <input
-                    type="text"
-                    placeholder="Buscar productos..."
-                    className="pl-10 pr-4 py-2.5 w-64 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm transition-all text-gray-900"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                  {search && (
+          {/* Contenido scrolleable */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Form Section */}
+            {showForm && (
+              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {editProducto ? 'Editar Producto' : 'Nuevo Producto'}
+                    </h3>
                     <button
-                      onClick={() => setSearch('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      onClick={handleCancelForm}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      <FaTimes className="text-xs" />
+                      <FaTimes />
                     </button>
-                  )}
+                  </div>
+                  <ProductoForm
+                    key={editProducto ? editProducto.id : 'new'}
+                    producto={editProducto}
+                    onSubmit={handleFormSubmit}
+                    onCancel={handleCancelForm}
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Controls Section - Sticky */}
+            <div className="px-6 py-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Lista de Productos
+                  </h3>
+                  <span className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                    {filteredAndSortedProductos.length} encontrados
+                  </span>
                 </div>
                 
-                {/* Botón nuevo producto */}
-                <button
-                  onClick={handleNewProducto}
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm hover:shadow-md whitespace-nowrap"
-                >
-                  <FaPlus className="text-sm" />
-                  <span className="hidden sm:inline">Nuevo Producto</span>
-                </button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  {/* Filtros */}
+                  <div className="flex flex-wrap gap-2">
+                    <select
+                      value={filterCategoria}
+                      onChange={(e) => setFilterCategoria(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                    >
+                      <option value="">Todas las categorías</option>
+                      {categorias.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                    
+                    <select
+                      value={filterRestaurante}
+                      onChange={(e) => setFilterRestaurante(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                    >
+                      <option value="">Todos los restaurantes</option>
+                      {restaurantes.map(rest => (
+                        <option key={rest} value={rest}>{rest}</option>
+                      ))}
+                    </select>
+                    
+                    <select
+                      value={filterDisponible}
+                      onChange={(e) => setFilterDisponible(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                    >
+                      <option value="">Todos</option>
+                      <option value="true">Disponibles</option>
+                      <option value="false">No disponibles</option>
+                    </select>
+                  </div>
+
+                  {/* Buscador */}
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                    <input
+                      type="text"
+                      placeholder="Buscar productos..."
+                      className="pl-10 pr-4 py-2.5 w-64 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm transition-all text-gray-900"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <FaTimes className="text-xs" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Botón nuevo producto */}
+                  <button
+                    onClick={handleNewProducto}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm hover:shadow-md whitespace-nowrap"
+                  >
+                    <FaPlus className="text-sm" />
+                    <span className="hidden sm:inline">Nuevo Producto</span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Content Section */}
-          <div className="flex-1 overflow-hidden">
-            <div className="h-full overflow-y-auto">
+            {/* Content Section */}
+            <div className="px-6 py-4">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-600 border-t-transparent"></div>
                   <p className="mt-4 text-gray-600 font-medium">Cargando productos...</p>
                 </div>
               ) : filteredAndSortedProductos.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="flex flex-col items-center justify-center py-16">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <FaBoxOpen className="text-gray-400 text-xl" />
                   </div>
@@ -353,7 +354,7 @@ export default function ModalProductos({ open, onClose }) {
                   )}
                 </div>
               ) : (
-                <div className="px-6 py-4">
+                <div>
                   {/* Vista de tabla para pantallas grandes */}
                   <div className="hidden xl:block">
                     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -503,7 +504,7 @@ export default function ModalProductos({ open, onClose }) {
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Footer - Siempre fijo */}
           <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">

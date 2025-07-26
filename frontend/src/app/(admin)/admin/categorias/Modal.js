@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FaSort, FaSortUp, FaSortDown, FaSearch, FaTimes, FaPlus, FaEdit, FaTrash } from 'react-icons/fa'
+import { FaSort, FaSortUp, FaSortDown, FaSearch, FaTimes, FaPlus, FaEdit, FaTrash, FaTags } from 'react-icons/fa'
 import CategoriaForm from './ModalForm'
 import CategoriaCard from './ComponentMovil/CategoriaCard'
 
@@ -34,6 +34,12 @@ export default function ModalCategorias({ open, onClose }) {
       setEditCategoria(null)
     }
   }, [open])
+
+  const closeModal = () => {
+    setEditCategoria(null)
+    setShowForm(false)
+    onClose()
+  }
 
   const onFormSubmit = async (categoriaData) => {
     try {
@@ -125,7 +131,7 @@ export default function ModalCategorias({ open, onClose }) {
     <>
       {/* Overlay */}
       <div 
-        onClick={onClose} 
+        onClick={closeModal} 
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
       />
 
@@ -137,12 +143,12 @@ export default function ModalCategorias({ open, onClose }) {
         style={{ height: 'min(92vh, 900px)' }}
       >
         <div className="h-full flex flex-col">
-          {/* Header del modal */}
+          {/* Header del modal - Siempre fijo */}
           <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                  <FaPlus className="text-white text-sm" />
+                  <FaTags className="text-white text-sm" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -154,7 +160,7 @@ export default function ModalCategorias({ open, onClose }) {
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={closeModal}
                 className="w-10 h-10 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center transition-colors group"
               >
                 <FaTimes className="text-gray-500 group-hover:text-gray-700" />
@@ -162,87 +168,88 @@ export default function ModalCategorias({ open, onClose }) {
             </div>
           </div>
 
-          {/* Form Section */}
-          {showForm && (
-            <div className="flex-shrink-0 px-6 py-4 bg-gray-50 border-b border-gray-200">
-              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {editCategoria ? 'Editar Categoría' : 'Nueva Categoría'}
-                  </h3>
-                  <button
-                    onClick={handleCancelForm}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <FaTimes />
-                  </button>
-                </div>
-                <CategoriaForm
-                  categoria={editCategoria}
-                  onSubmit={onFormSubmit}
-                  onCancel={handleCancelForm}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Controls Section */}
-          <div className="flex-shrink-0 px-6 py-4 bg-white border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Lista de Categorías
-                </h3>
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                  {sortedCategorias.length} encontradas
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                {/* Buscador */}
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-                  <input
-                    type="text"
-                    placeholder="Buscar categorías..."
-                    className="pl-10 pr-4 py-2.5 w-64 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                  {search && (
+          {/* Contenido scrolleable */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Form Section */}
+            {showForm && (
+              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {editCategoria ? 'Editar Categoría' : 'Nueva Categoría'}
+                    </h3>
                     <button
-                      onClick={() => setSearch('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      onClick={handleCancelForm}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      <FaTimes className="text-xs" />
+                      <FaTimes />
                     </button>
-                  )}
+                  </div>
+                  <CategoriaForm
+                    categoria={editCategoria}
+                    onSubmit={onFormSubmit}
+                    onCancel={handleCancelForm}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Controls Section - Sticky */}
+            <div className="px-6 py-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Lista de Categorías
+                  </h3>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                    {sortedCategorias.length} encontradas
+                  </span>
                 </div>
                 
-                {/* Botón nueva categoría */}
-                <button
-                  onClick={handleNewCategoria}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm hover:shadow-md"
-                >
-                  <FaPlus className="text-sm" />
-                  <span className="hidden sm:inline">Nueva</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Buscador */}
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                    <input
+                      type="text"
+                      placeholder="Buscar categorías..."
+                      className="pl-10 pr-4 py-2.5 w-64 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all text-gray-900"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <FaTimes className="text-xs" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Botón nueva categoría */}
+                  <button
+                    onClick={handleNewCategoria}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm hover:shadow-md whitespace-nowrap"
+                  >
+                    <FaPlus className="text-sm" />
+                    <span className="hidden sm:inline">Nueva Categoría</span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Content Section */}
-          <div className="flex-1 overflow-hidden">
-            <div className="h-full overflow-y-auto">
+            {/* Content Section */}
+            <div className="px-6 py-4">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
                   <p className="mt-4 text-gray-600 font-medium">Cargando categorías...</p>
                 </div>
               ) : sortedCategorias.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="flex flex-col items-center justify-center py-16">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <FaSearch className="text-gray-400 text-xl" />
+                    <FaTags className="text-gray-400 text-xl" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {search ? 'Sin resultados' : 'No hay categorías'}
@@ -264,7 +271,7 @@ export default function ModalCategorias({ open, onClose }) {
                   )}
                 </div>
               ) : (
-                <div className="px-6 py-4">
+                <div>
                   {/* Vista de tabla para pantallas grandes */}
                   <div className="hidden lg:block">
                     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -346,14 +353,13 @@ export default function ModalCategorias({ open, onClose }) {
                   </div>
 
                   {/* Vista de tarjetas para móviles */}
-                  {/* Vista de tarjetas para móviles */}
                   <div className="md:hidden space-y-4">
                     {sortedCategorias.map(cat => (
                       <CategoriaCard
                         key={cat.id}
                         categoria={cat}
                         onEdit={handleEdit}
-                        onDelete={onDelete}
+                        onDelete={onDelete}  
                         responsive="mobile"
                       />
                     ))}
@@ -363,7 +369,7 @@ export default function ModalCategorias({ open, onClose }) {
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Footer - Siempre fijo */}
           <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
@@ -371,7 +377,7 @@ export default function ModalCategorias({ open, onClose }) {
                 {search && ` • ${sortedCategorias.length} encontradas`}
               </div>
               <button
-                onClick={onClose}
+                onClick={closeModal}
                 className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2.5 rounded-xl font-medium transition-colors"
               >
                 Cerrar
