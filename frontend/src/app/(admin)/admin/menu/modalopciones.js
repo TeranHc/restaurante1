@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 
 export default function ModalOpcionesProducto({ producto, onClose }) {
@@ -6,6 +7,7 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
   const [loading, setLoading] = useState(false)
   const [nuevoTipo, setNuevoTipo] = useState('')
   const [nuevoValor, setNuevoValor] = useState('')
+  const [nuevoPrecio, setNuevoPrecio] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -38,6 +40,8 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
       return
     }
 
+    const parsedPrecio = parseFloat(nuevoPrecio || 0)
+
     try {
       const res = await fetch(`http://localhost:3001/api/product-options`, {
         method: 'POST',
@@ -47,7 +51,8 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
         body: JSON.stringify({
           product_id: producto.id,
           option_type: nuevoTipo,
-          option_value: nuevoValor
+          option_value: nuevoValor,
+          extra_price: isNaN(parsedPrecio) ? 0 : parsedPrecio
         })
       })
 
@@ -60,13 +65,14 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
       setOpciones(prev => [...prev, nuevaOpcion])
       setNuevoTipo('')
       setNuevoValor('')
+      setNuevoPrecio('')
     } catch (err) {
       setError(err.message)
     }
   }
 
   return (
-    <div className="p-4 max-w-md bg-white rounded shadow">
+    <div className="p-4 max-w-md bg-white rounded shadow text-black">
       <h2 className="text-xl font-bold mb-4">Opciones de {producto.nombre}</h2>
 
       {loading ? (
@@ -74,10 +80,13 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
       ) : opciones.length === 0 ? (
         <p className="text-gray-500">No hay opciones para este producto.</p>
       ) : (
-        <ul className="mb-4">
+        <ul className="mb-4 space-y-2">
           {opciones.map(opt => (
-            <li key={opt.id}>
+            <li key={opt.id} className="text-black">
               <strong>{opt.option_type}:</strong> {opt.option_value}
+              {opt.extra_price && parseFloat(opt.extra_price) > 0 && (
+                <span> (+${parseFloat(opt.extra_price).toFixed(2)})</span>
+              )}
             </li>
           ))}
         </ul>
@@ -89,14 +98,23 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
           placeholder="Tipo de opción (ej: Tamaño)"
           value={nuevoTipo}
           onChange={e => setNuevoTipo(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
+          className="w-full border px-3 py-2 rounded text-black"
         />
         <input
           type="text"
           placeholder="Valor (ej: Grande)"
           value={nuevoValor}
           onChange={e => setNuevoValor(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
+          className="w-full border px-3 py-2 rounded text-black"
+        />
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Precio adicional (opcional)"
+          value={nuevoPrecio}
+          onChange={e => setNuevoPrecio(e.target.value)}
+          className="w-full border px-3 py-2 rounded text-black"
         />
         <button
           onClick={agregarOpcion}
