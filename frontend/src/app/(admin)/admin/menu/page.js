@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation' // Importar useRouter para navegación
 import { Settings, Tags, Store, Search, X } from "lucide-react"; 
 import ModalProductos from '../productos/Modal'
 import ModalCategorias from '../categorias/Modal'
 import ModalRestaurantes from '../restaurantes/Modal'
-import ModalOpcionesProducto from './modalopciones';
 
 
 export default function MenuPage() {
@@ -14,9 +14,9 @@ export default function MenuPage() {
   const [modalOpenProductos, setModalOpenProductos] = useState(false)
   const [modalOpenCategorias, setModalOpenCategorias] = useState(false)
   const [modalOpenRestaurantes, setModalOpenRestaurantes] = useState(false)
-  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-  const [modalOpcionesAbierto, setModalOpcionesAbierto] = useState(false);
- 
+  
+  // Hook para navegación
+  const router = useRouter();
   
   // Estados para filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -249,22 +249,6 @@ export default function MenuPage() {
         </>
       )}
 
-      {modalOpcionesAbierto && productoSeleccionado && (
-        <>
-          <div
-            onClick={() => setModalOpcionesAbierto(false)}
-            className="fixed inset-0 bg-black bg-opacity-40 z-40"
-          />
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-lg">
-              <ModalOpcionesProducto
-              producto={productoSeleccionado}
-              onClose={() => setModalOpcionesAbierto(false)}
-            />
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Content - Tarjetas mejoradas */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -337,12 +321,9 @@ export default function MenuPage() {
                       )}
                     </div>
                     
-                    {/* Botón de acción opcional */}
+                    {/* Botón modificado para redirección */}
                     <button
-                      onClick={() => {
-                        setProductoSeleccionado(prod);
-                        setModalOpcionesAbierto(true);
-                      }}
+                      onClick={() => router.push(`/admin/opcionesmenu?productId=${prod.id}&productName=${encodeURIComponent(prod.nombre)}`)}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                       Ver más
