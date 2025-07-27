@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function AdminLayout({ children }) {
   return (
-    <>
+    <> 
       <Header />
       <main className="flex-grow mt-1">{children}</main>
       <Footer />

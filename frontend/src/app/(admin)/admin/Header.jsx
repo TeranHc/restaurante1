@@ -42,7 +42,7 @@ export default function Header() {
             {[
               { href: '/admin/menu', label: 'Carta' },
               { href: '/admin/reservas', label: 'Reservas' },
-              { href: '/admin/horarios', label: 'Horarios' },
+              { href: '/admin/ReservationAdmin', label: 'Horarios' },
               { href: '/admin/restaurantes', label: 'Restaurantes' },
               { href: '/admin/categorias', label: 'Categoria' },
               { href: '/admin/productos', label: 'Productos' }
