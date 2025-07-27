@@ -12,6 +12,39 @@ export default function ReservaForm({ reserva, onSubmit, onCancel }) {
     status: 'PENDING',
     specialRequests: '',
   })
+  const [users, setUsers] = useState([])
+  const [restaurants, setRestaurants] = useState([])
+
+  // Cargar usuarios
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/users')
+      if (res.ok) {
+        const data = await res.json()
+        setUsers(data)
+      }
+    } catch (error) {
+      console.error('Error cargando usuarios:', error)
+    }
+  }
+
+  // Cargar restaurantes
+  const fetchRestaurants = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/restaurants')
+      if (res.ok) {
+        const data = await res.json()
+        setRestaurants(data)
+      }
+    } catch (error) {
+      console.error('Error cargando restaurantes:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+    fetchRestaurants()
+  }, [])
 
   useEffect(() => {
     if (reserva) {
@@ -97,27 +130,35 @@ export default function ReservaForm({ reserva, onSubmit, onCancel }) {
       
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div>
-          <input
+          <select
             name="userId"
-            type="number"
-            placeholder="ID Usuario"
             value={formData.userId}
             onChange={handleChange}
             required
-            style={inputStyle}
-            min="1"
-          />
+            style={selectStyle}
+          >
+            <option value="">Seleccionar Usuario</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.first_name} {user.last_name} 
+              </option>
+            ))}
+          </select>
           
-          <input
+          <select
             name="restaurantId"
-            type="number"
-            placeholder="ID Restaurante"
             value={formData.restaurantId}
             onChange={handleChange}
             required
-            style={inputStyle}
-            min="1"
-          />
+            style={selectStyle}
+          >
+            <option value="">Seleccionar Restaurante</option>
+            {restaurants.map((restaurant) => (
+              <option key={restaurant.id} value={restaurant.id}>
+                {restaurant.name}
+              </option>
+            ))}
+          </select>
           
           <input
             name="reservationDate"
