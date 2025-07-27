@@ -321,7 +321,7 @@ export default function MenuPage() {
                       )}
                     </div>
                     
-                    {/* Botón modificado para redirección */}
+                    {/* redirecciona a la pagina de agregar opciones */}
                     <button
                       onClick={() => router.push(`/admin/opcionesmenu?productId=${prod.id}&productName=${encodeURIComponent(prod.nombre)}`)}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"

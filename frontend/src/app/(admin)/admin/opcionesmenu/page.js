@@ -30,11 +30,12 @@ export default function OpcionesProductoPage() {
 
     const fetchOpciones = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/product-options?product_id=${producto.id}`)
+        const url = `http://localhost:3001/api/product-options?product_id=${producto.id}`
+        
+        const res = await fetch(url)
         
         if (!res.ok) {
           if (res.status === 404) {
-            // Si no existe el endpoint o no hay opciones, simplemente mostramos lista vacía
             setOpciones([])
             return
           }
@@ -45,7 +46,6 @@ export default function OpcionesProductoPage() {
         const data = await res.json()
         setOpciones(Array.isArray(data) ? data : [])
       } catch (err) {
-        // Si hay error de red o servidor, mostramos mensaje pero permitimos seguir usando la página
         console.error('Error al cargar opciones:', err)
         setError(`No se pudieron cargar las opciones: ${err.message}`)
         setOpciones([])
@@ -101,7 +101,6 @@ export default function OpcionesProductoPage() {
       setNuevoPrecio('')
       
       // Mensaje de éxito temporal
-      const successMsg = error
       setError('✓ Opción agregada exitosamente')
       setTimeout(() => setError(''), 3000)
       
@@ -304,3 +303,5 @@ export default function OpcionesProductoPage() {
     </div>
   )
 }
+
+
