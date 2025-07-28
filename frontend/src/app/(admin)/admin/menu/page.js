@@ -323,10 +323,10 @@ export default function MenuPage() {
                     
                     {/* redirecciona a la pagina de agregar opciones */}
                     <button
-                      onClick={() => router.push(`/admin/opcionesmenu?productId=${prod.id}&productName=${encodeURIComponent(prod.nombre)}`)}
+                      onClick={() => router.push(`/admin/opcionesmenu?productId=${prod.id}&productName=${encodeURIComponent(prod.nombre)}&basePrice=${prod.precio}`)}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
-                      Ver más
+                      + Agregar
                     </button>
                   </div>
                 </div>
