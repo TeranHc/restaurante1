@@ -19,6 +19,9 @@ export default function OpcionesProductoPage() {
   const [nuevoPrecio, setNuevoPrecio] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
+  
+  // Estado para edición
+  const [editando, setEditando] = useState(null) // ID de la opción que se está editando
 
   // Crear objeto producto simple
   const producto = productId ? { id: productId, nombre: decodeURIComponent(productName || 'Producto') } : null
@@ -135,6 +138,76 @@ export default function OpcionesProductoPage() {
     }
   }
 
+  const iniciarEdicion = (opcion) => {
+    setEditando(opcion.id)
+    // Cargar los valores en los campos del formulario principal
+    setNuevoTipo(opcion.option_type)
+    setNuevoValor(opcion.option_value)
+    setNuevoPrecio(opcion.extra_price || '')
+    setError('') // Limpiar errores previos
+  }
+
+  const cancelarEdicion = () => {
+    setEditando(null)
+    // Limpiar los campos del formulario
+    setNuevoTipo('')
+    setNuevoValor('')
+    setNuevoPrecio('')
+    setError('')
+  }
+
+  const guardarEdicion = async () => {
+    if (guardando || !editando) return
+    
+    setError('')
+    
+    if (!nuevoTipo.trim() || !nuevoValor.trim()) {
+      setError('Debes ingresar tanto el tipo como el valor de la opción.')
+      return
+    }
+
+    const parsedPrecio = parseFloat(nuevoPrecio || 0)
+
+    setGuardando(true)
+    try {
+      const res = await fetch(`http://localhost:3001/api/product-options/${editando}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          option_type: nuevoTipo.trim(),
+          option_value: nuevoValor.trim(),
+          extra_price: isNaN(parsedPrecio) ? 0 : parsedPrecio
+        })
+      })
+
+      if (!res.ok) {
+        const errBody = await res.text()
+        throw new Error(`Error ${res.status}: ${errBody || 'al actualizar opción'}`)
+      }
+
+      const opcionActualizada = await res.json()
+      
+      // Actualizar la opción en el estado
+      setOpciones(prev => prev.map(opt => 
+        opt.id === editando ? opcionActualizada : opt
+      ))
+      
+      // Limpiar estados de edición
+      cancelarEdicion()
+      
+      // Mensaje de éxito temporal
+      setError('✓ Opción actualizada exitosamente')
+      setTimeout(() => setError(''), 3000)
+      
+    } catch (err) {
+      setError(`Error al actualizar: ${err.message}`)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
   const volver = () => {
     router.back()
   }
@@ -191,9 +264,11 @@ export default function OpcionesProductoPage() {
 
           {/* LADO DERECHO - PANEL DE ADMINISTRADOR */}
           <div className="space-y-6">
-            {/* Formulario para agregar opciones */}
+            {/* Formulario para agregar/editar opciones */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Panel de Administrador</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                {editando ? 'Editar Opción' : 'Panel de Administrador'}
+              </h2>
 
               <div className="space-y-4">
                 <div>
@@ -240,20 +315,48 @@ export default function OpcionesProductoPage() {
                   </p>
                 </div>
 
-                <button
-                  onClick={agregarOpcion}
-                  disabled={guardando}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center"
-                >
-                  {guardando ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Guardando...
-                    </>
-                  ) : (
-                    'Agregar Opción'
-                  )}
-                </button>
+                {editando ? (
+                  // Botones para modo edición
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={cancelarEdicion}
+                      disabled={guardando}
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={guardarEdicion}
+                      disabled={guardando}
+                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center"
+                    >
+                      {guardando ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Actualizando...
+                        </>
+                      ) : (
+                        'Actualizar Opción'
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  // Botón para modo agregar
+                  <button
+                    onClick={agregarOpcion}
+                    disabled={guardando}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center"
+                  >
+                    {guardando ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Guardando...
+                      </>
+                    ) : (
+                      'Agregar Opción'
+                    )}
+                  </button>
+                )}
 
                 {error && (
                   <div className={`p-3 rounded-lg text-sm ${
@@ -282,7 +385,11 @@ export default function OpcionesProductoPage() {
                   {opciones.map(opt => (
                     <div
                       key={opt.id}
-                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
+                        editando === opt.id 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-900 truncate">
@@ -294,12 +401,28 @@ export default function OpcionesProductoPage() {
                           </div>
                         )}
                       </div>
-                      <button
-                        onClick={() => eliminarOpcion(opt.id)}
-                        className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50 transition-colors ml-2"
-                      >
-                        Eliminar
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        {editando === opt.id ? (
+                          <span className="text-xs text-blue-600 font-medium">Editando...</span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => iniciarEdicion(opt)}
+                              disabled={editando !== null}
+                              className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => eliminarOpcion(opt.id)}
+                              disabled={editando !== null}
+                              className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Eliminar
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
