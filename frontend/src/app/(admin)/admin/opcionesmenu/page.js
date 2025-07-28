@@ -7,6 +7,7 @@ import VistaCliente from './vistaCliente' // Ajusta la ruta según tu estructura
 export default function OpcionesProductoPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const productImage = searchParams.get('productImage')
   
   const productId = searchParams.get('productId')
   const productName = searchParams.get('productName')
@@ -259,7 +260,7 @@ export default function OpcionesProductoPage() {
               </div>
             </div>
           ) : (
-            <VistaCliente opciones={opciones} basePrice={basePrice} />
+            <VistaCliente opciones={opciones} basePrice={basePrice} productImage={productImage} />
           )}
 
           {/* LADO DERECHO - PANEL DE ADMINISTRADOR */}
