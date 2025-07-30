@@ -210,7 +210,7 @@ export default function MenuPage() {
                     <button
                       onClick={() =>
                         router.push(
-                          `/admin/opcionesmenu?productId=${prod.id}&productName=${encodeURIComponent(
+                          `./opcionesCliente?productId=${prod.id}&productName=${encodeURIComponent(
                             prod.nombre
                           )}&basePrice=${prod.precio}&productImage=${encodeURIComponent(prod.imagen)}`
                         )
