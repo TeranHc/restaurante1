@@ -355,129 +355,133 @@ export default function ModalProductos({ open, onClose }) {
                   {/* Vista de tabla para pantallas grandes */}
                   <div className="hidden xl:block">
                     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                          <tr>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-20">
-                              Imagen
-                            </th>
-                            <th
-                              onClick={() => handleSort('nombre')}
-                              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                            >
-                              <div className="flex items-center">
-                                Nombre {renderSortIcon('nombre')}
-                              </div>
-                            </th>
-                            <th
-                              onClick={() => handleSort('precio')}
-                              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                            >
-                              <div className="flex items-center">
-                                Precio {renderSortIcon('precio')}
-                              </div>
-                            </th>
-                            <th
-                              onClick={() => handleSort('categories')}
-                              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                            >
-                              <div className="flex items-center">
-                                Categoría {renderSortIcon('categories')}
-                              </div>
-                            </th>
-                            <th
-                              onClick={() => handleSort('restaurants')}
-                              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                            >
-                              <div className="flex items-center">
-                                Restaurante {renderSortIcon('restaurants')}
-                              </div>
-                            </th>
-                            <th
-                              onClick={() => handleSort('disponible')}
-                              className="px-6 py-4 text-center text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                            >
-                              <div className="flex items-center justify-center">
-                                Estado {renderSortIcon('disponible')}
-                              </div>
-                            </th>
-                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-32">
-                              Acciones
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {filteredAndSortedProductos.map((prod, index) => (
-                            <tr key={prod.id} className="hover:bg-orange-50/50 transition-colors group">
-                              <td className="px-6 py-4">
-                                {getImageUrl(prod) ? (
-                                  <img
-                                    src={getImageUrl(prod)}
-                                    alt={prod.nombre}
-                                    className="w-12 h-12 object-cover rounded-lg border border-gray-200"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                                    <FaImage className="text-gray-400 text-sm" />
-                                  </div>
-                                )}
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="font-medium text-gray-900">{prod.nombre}</div>
-                                {prod.descripcion && (
-                                  <div className="text-sm text-gray-500 truncate max-w-xs">
-                                    {prod.descripcion}
-                                  </div>
-                                )}
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="font-medium text-green-600">
-                                  ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-md">
-                                  {prod.categories?.name || 'Sin categoría'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="text-gray-600">
-                                  {prod.restaurants?.name || 'Sin restaurante'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-center">
-                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                  prod.disponible 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {prod.disponible ? 'Disponible' : 'No disponible'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => handleEdit(prod)}
-                                    className="w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-colors"
-                                    title="Editar"
-                                    disabled={saving}
-                                  >
-                                    <FaEdit className="text-xs" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(prod)}
-                                    className="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-colors"
-                                    title="Eliminar"
-                                    disabled={saving}
-                                  >
-                                    <FaTrash className="text-xs" />
-                                  </button>
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[1200px]">
+                          <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                              <th className="px-4 py-4 text-left text-sm font-semibold text-gray-700 w-[80px]">
+                                Imagen
+                              </th>
+                              <th
+                                onClick={() => handleSort('nombre')}
+                                className="px-4 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none w-[200px]"
+                              >
+                                <div className="flex items-center">
+                                  Nombre {renderSortIcon('nombre')}
                                 </div>
-                              </td>
+                              </th>
+                              <th
+                                onClick={() => handleSort('precio')}
+                                className="px-4 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none w-[120px]"
+                              >
+                                <div className="flex items-center">
+                                  Precio {renderSortIcon('precio')}
+                                </div>
+                              </th>
+                              <th
+                                onClick={() => handleSort('categories')}
+                                className="px-4 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none w-[150px]"
+                              >
+                                <div className="flex items-center">
+                                  Categoría {renderSortIcon('categories')}
+                                </div>
+                              </th>
+                              <th
+                                onClick={() => handleSort('restaurants')}
+                                className="px-4 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none w-[180px]"
+                              >
+                                <div className="flex items-center">
+                                  Restaurante {renderSortIcon('restaurants')}
+                                </div>
+                              </th>
+                              <th
+                                onClick={() => handleSort('disponible')}
+                                className="px-4 py-4 text-center text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none w-[120px]"
+                              >
+                                <div className="flex items-center justify-center">
+                                  Estado {renderSortIcon('disponible')}
+                                </div>
+                              </th>
+                              <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-[100px]">
+                                Acciones
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {filteredAndSortedProductos.map((prod, index) => (
+                              <tr key={prod.id} className="hover:bg-orange-50/50 transition-colors group">
+                                <td className="px-4 py-4">
+                                  {getImageUrl(prod) ? (
+                                    <img
+                                      src={getImageUrl(prod)}
+                                      alt={prod.nombre}
+                                      className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                                      <FaImage className="text-gray-400 text-sm" />
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="font-medium text-gray-900 truncate" title={prod.nombre}>
+                                    {prod.nombre}
+                                  </div>
+                                  {prod.descripcion && (
+                                    <div className="text-sm text-gray-500 truncate" title={prod.descripcion}>
+                                      {prod.descripcion}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-4 py-4">
+                                  <span className="font-medium text-green-600 whitespace-nowrap">
+                                    ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-md whitespace-nowrap">
+                                    {prod.categories?.name || 'Sin categoría'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="text-gray-600 truncate" title={prod.restaurants?.name || 'Sin restaurante'}>
+                                    {prod.restaurants?.name || 'Sin restaurante'}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                  <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                                    prod.disponible 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {prod.disponible ? 'Disponible' : 'No disponible'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button
+                                      onClick={() => handleEdit(prod)}
+                                      className="w-7 h-7 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                                      title="Editar"
+                                      disabled={saving}
+                                    >
+                                      <FaEdit className="text-xs" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(prod)}
+                                      className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                                      title="Eliminar"
+                                      disabled={saving}
+                                    >
+                                      <FaTrash className="text-xs" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
 

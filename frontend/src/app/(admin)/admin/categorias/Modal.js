@@ -275,65 +275,69 @@ export default function ModalCategorias({ open, onClose }) {
                   {/* Vista de tabla para pantallas grandes */}
                   <div className="hidden lg:block">
                     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                          <tr>
-                            <th
-                              onClick={() => handleSort('name')}
-                              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                            >
-                              <div className="flex items-center">
-                                Nombre {renderSortIcon('name')}
-                              </div>
-                            </th>
-                            <th
-                              onClick={() => handleSort('description')}
-                              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
-                            >
-                              <div className="flex items-center">
-                                Descripción {renderSortIcon('description')}
-                              </div>
-                            </th>
-                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-32">
-                              Acciones
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {sortedCategorias.map((cat, index) => (
-                            <tr key={cat.id} className="hover:bg-blue-50/50 transition-colors group">
-                              <td className="px-6 py-4">
-                                <div className="font-medium text-gray-900">{cat.name}</div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-gray-600 max-w-md">
-                                  {cat.description || (
-                                    <span className="text-gray-400 italic">Sin descripción</span>
-                                  )}
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[800px]">
+                          <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                              <th
+                                onClick={() => handleSort('name')}
+                                className="px-4 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none w-[250px]"
+                              >
+                                <div className="flex items-center">
+                                  Nombre {renderSortIcon('name')}
                                 </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => handleEdit(cat)}
-                                    className="w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-colors"
-                                    title="Editar"
-                                  >
-                                    <FaEdit className="text-xs" />
-                                  </button>
-                                  <button
-                                    onClick={() => onDelete(cat.id)}
-                                    className="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-colors"
-                                    title="Eliminar"
-                                  >
-                                    <FaTrash className="text-xs" />
-                                  </button>
+                              </th>
+                              <th
+                                onClick={() => handleSort('description')}
+                                className="px-4 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none w-[400px]"
+                              >
+                                <div className="flex items-center">
+                                  Descripción {renderSortIcon('description')}
                                 </div>
-                              </td>
+                              </th>
+                              <th className="px-4 py-4 text-center text-sm font-semibold text-gray-700 w-[100px]">
+                                Acciones
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {sortedCategorias.map((cat, index) => (
+                              <tr key={cat.id} className="hover:bg-blue-50/50 transition-colors group">
+                                <td className="px-4 py-4">
+                                  <div className="font-medium text-gray-900 truncate" title={cat.name}>
+                                    {cat.name}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="text-gray-600 truncate" title={cat.description || 'Sin descripción'}>
+                                    {cat.description || (
+                                      <span className="text-gray-400 italic">Sin descripción</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button
+                                      onClick={() => handleEdit(cat)}
+                                      className="w-7 h-7 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                                      title="Editar"
+                                    >
+                                      <FaEdit className="text-xs" />
+                                    </button>
+                                    <button
+                                      onClick={() => onDelete(cat.id)}
+                                      className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                                      title="Eliminar"
+                                    >
+                                      <FaTrash className="text-xs" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
 
