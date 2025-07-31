@@ -20,15 +20,24 @@ export default function ProductoForm({ producto, onSubmit, onCancel, disabled })
   const [imagePreview, setImagePreview] = useState(null)
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/categorias')
-      .then(res => res.json())
-      .then(setCategorias)
-      .catch(err => console.error('Error cargando categorías:', err))
+  fetch('http://localhost:3001/api/categorias')
+    .then(res => res.json())
+    .then(setCategorias)
+    .catch(err => console.error('Error cargando categorías:', err))
 
-    fetch('http://localhost:3001/api/restaurants')
-      .then(res => res.json())
-      .then(setRestaurantes)
-      .catch(err => console.error('Error cargando restaurantes:', err))
+  fetch('http://localhost:3001/api/restaurants')
+    .then(res => res.json())
+    .then(data => {
+      const restaurantesActivos = data
+        .map(restaurant => ({
+          ...restaurant,
+          isActive: restaurant.is_active 
+        }))
+        .filter(restaurant => restaurant.isActive) 
+      
+      setRestaurantes(restaurantesActivos)
+    })
+    .catch(err => console.error('Error cargando restaurantes:', err))
   }, [])
 
   useEffect(() => {

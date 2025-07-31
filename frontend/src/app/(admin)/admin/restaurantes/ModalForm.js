@@ -27,7 +27,7 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel, disab
         capacity: restaurante.capacity !== undefined ? String(restaurante.capacity) : '',
         opening_time: restaurante.opening_time || '',
         closing_time: restaurante.closing_time || '',
-        is_active: restaurante.is_active !== undefined ? restaurante.is_active : true,
+        is_active: restaurante.is_active ?? true,
       })
     } else {
       setFormData({

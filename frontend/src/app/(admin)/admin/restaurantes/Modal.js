@@ -21,13 +21,18 @@ export default function ModalRestaurantes({ open, onClose }) {
   const [filterActivo, setFilterActivo] = useState('')
 
   const fetchRestaurantes = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`${API_BASE_URL}/restaurants`)
-      if (!res.ok) throw new Error('Error al cargar restaurantes')
-      const data = await res.json()
-      setRestaurantes(data)
+  setLoading(true)
+  setError(null)
+  try {
+    const res = await fetch(`${API_BASE_URL}/restaurants`)
+    if (!res.ok) throw new Error('Error al cargar restaurantes')
+    const data = await res.json()
+    const normalizedData = data.map(restaurant => ({
+      ...restaurant,
+      isActive: restaurant.is_active 
+    }))
+    
+      setRestaurantes(normalizedData)
     } catch (err) {
       setError(err.message)
     } finally {
