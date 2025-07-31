@@ -62,38 +62,7 @@ export default function MenuPage() {
                 Descubre nuestros deliciosos productos
               </p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filtros */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            
-            {/* Contador de productos y debug info */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">
-                {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''} encontrado{filteredProductos.length !== 1 ? 's' : ''}
-              </span>
-              <span className="text-xs text-slate-400">
-                | {categorias.length} categoría{categorias.length !== 1 ? 's' : ''}
-              </span>
-              {(searchTerm || selectedCategory) && (
-                <button
-                  onClick={() => {
-                    setSearchTerm('')
-                    setSelectedCategory('')
-                  }}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline ml-2"
-                >
-                  Limpiar filtros
-                </button>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              {/* Buscador */}
+            {/* Buscador */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
                 <input
@@ -112,24 +81,63 @@ export default function MenuPage() {
                   </button>
                 )}
               </div>
+          </div>
+        </div>
+      </div>
 
-              {/* Filtro por categoría */}
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-40 text-gray-900"
+      {/* Filtros */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+
+            {/* Contador de productos y debug info */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-slate-600">
+                {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''} encontrado{filteredProductos.length !== 1 ? 's' : ''}
+              </span>
+              <span className="text-xs text-slate-400">
+                | {categorias.length} categoría{categorias.length !== 1 ? 's' : ''}
+              </span>
+
+              {/* {(searchTerm || selectedCategory) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSelectedCategory('')
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline ml-2"
+                >
+                  Limpiar filtros
+                </button>
+              )} */}
+            </div>
+
+            {/* Índice de categorías (nuevo diseño) */}
+            <div className="flex gap-2 flex-wrap justify-start sm:justify-end w-full sm:w-auto">
+              <button
+                onClick={() => setSelectedCategory('')}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 shadow-sm ${
+                  selectedCategory === ''
+                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:shadow'
+                }`}
               >
-                <option value="">Seleccione categoria</option>
-                {categorias.length > 0 ? (
-                  categorias.map(categoria => (
-                    <option key={categoria} value={categoria}>
-                      {categoria} 
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No hay categorías disponibles</option>
-                )}
-              </select>
+                Todas
+              </button>
+
+              {categorias.map((categoria) => (
+                <button
+                  key={categoria}
+                  onClick={() => setSelectedCategory(categoria)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 shadow-sm ${
+                    selectedCategory === categoria
+                      ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:shadow'
+                  }`}
+                >
+                  {categoria}
+                </button>
+              ))}
             </div>
           </div>
         </div>

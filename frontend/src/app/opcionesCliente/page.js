@@ -12,7 +12,7 @@ export default function ProductOptionsClientPage() {
   const basePrice = parseFloat(searchParams.get('basePrice') || '0')
   
   const [opciones, setOpciones] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [opcionesSeleccionadas, setOpcionesSeleccionadas] = useState({})
   const [precioTotal, setPrecioTotal] = useState(basePrice)
