@@ -40,44 +40,92 @@ export default function ModalCategorias({ open, onClose }) {
     setShowForm(false)
     onClose()
   }
-
-  const onFormSubmit = async (categoriaData) => {
-    try {
-      let res
-      if (editCategoria) {
-        res = await fetch(`http://localhost:3001/api/categorias/${editCategoria.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(categoriaData),
-        })
-      } else {
-        res = await fetch('http://localhost:3001/api/categorias', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(categoriaData),
-        })
-      }
-      if (!res.ok) throw new Error('Error al guardar categoría')
-      await fetchCategorias()
-      setEditCategoria(null)
-      setShowForm(false)
-    } catch (error) {
-      alert(error.message)
+const onFormSubmit = async (categoriaData) => {
+  try {
+    const token = localStorage.getItem('token'); // <-- tu JWT
+    if (!token) {
+      alert('No estás autenticado.');
+      return;
     }
+
+    let res;
+    if (editCategoria) {
+      res = await fetch(`http://localhost:3001/api/categorias/${editCategoria.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // <-- agregar token
+        },
+        body: JSON.stringify(categoriaData),
+      });
+    } else {
+      res = await fetch('http://localhost:3001/api/categorias', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // <-- agregar token
+        },
+        body: JSON.stringify(categoriaData),
+      });
+    }
+
+    if (res.status === 403) {
+      alert('Acceso denegado. Necesitas ser administrador.');
+      return;
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Error al guardar categoría');
+    }
+
+    await fetchCategorias();
+    setEditCategoria(null);
+    setShowForm(false);
+
+  } catch (error) {
+    console.error(error);
+    alert('Error guardando categoría: ' + error.message);
+  }
+};
+
+
+// Eliminar categoría
+const onDelete = async (id) => {
+  if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('No estás autenticado.');
+    return;
   }
 
-  const onDelete = async (id) => {
-    if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return
-    try {
-      const res = await fetch(`http://localhost:3001/api/categorias/${id}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) throw new Error('Error al eliminar categoría')
-      await fetchCategorias()
-    } catch (error) {
-      alert(error.message)
+  try {
+    const res = await fetch(`http://localhost:3001/api/categorias/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.status === 403) {
+      alert('Acceso denegado. Necesitas ser administrador.');
+      return;
     }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Error eliminando categoría');
+    }
+
+    await fetchCategorias();
+    alert('Categoría eliminada correctamente');
+
+  } catch (error) {
+    console.error(error);
+    alert('Error eliminando categoría: ' + error.message);
   }
+};
 
   const handleEdit = (categoria) => {
     setEditCategoria(categoria)

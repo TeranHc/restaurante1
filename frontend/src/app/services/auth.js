@@ -1,133 +1,120 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// src/services/auth.js
+import { createClient } from '@supabase/supabase-js'
 
-// Función para hacer peticiones HTTP
+// Inicializar Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
+// Función genérica para llamar a tu backend
 const apiRequest = async (endpoint, options = {}) => {
-  const url = `${API_URL}${endpoint}`;
+  const url = `${API_URL}${endpoint}`
   const config = {
     headers: {
       'Content-Type': 'application/json',
     },
     ...options,
-  };
+  }
 
   // Agregar token si existe
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('authToken')
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`
   }
 
-  try {
-    const response = await fetch(url, config);
-    const data = await response.json();
+  const response = await fetch(url, config)
+  const data = await response.json()
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Error en la petición');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error en API request:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(data.error || 'Error en la petición')
   }
-};
 
-// Servicio de autenticación
+  return data
+}
+
 export const authService = {
-  // Registrar usuario
+  // Registrar usuario en Supabase
   register: async (userData) => {
-    try {
-      const response = await apiRequest('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(userData),
-      });
+    const { data, error } = await supabase.auth.signUp({
+      email: userData.email,
+      password: userData.password
+    })
 
-      // Guardar token en localStorage
-      if (response.token) {
-        localStorage.setItem('authToken', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      }
+    if (error) throw error
 
-      return response;
-    } catch (error) {
-      throw error;
+    const token = data.session?.access_token
+    const user = data.user
+
+    if (token) {
+      localStorage.setItem('authToken', token)
+      localStorage.setItem('user', JSON.stringify(user))
     }
+
+    return { token, user }
   },
 
-  // Login
+  // Login con Supabase
   login: async (email, password) => {
-    try {
-      const response = await apiRequest('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-      // Guardar token en localStorage
-      if (response.token) {
-        localStorage.setItem('authToken', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      }
+    if (error) throw error
 
-      return response;
-    } catch (error) {
-      throw error;
+    const token = data.session?.access_token
+    const user = data.user
+
+    if (token) {
+      localStorage.setItem('authToken', token)
+      localStorage.setItem('user', JSON.stringify(user))
     }
+
+    return { token, user }
   },
 
-  // Logout
+  // Logout en Supabase
   logout: async () => {
     try {
-      await apiRequest('/api/auth/logout', {
-        method: 'POST',
-      });
+      await supabase.auth.signOut()
     } catch (error) {
-      console.error('Error en logout:', error);
+      console.error('Error en logout:', error)
     } finally {
-      // Limpiar localStorage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      localStorage.removeItem('authToken')
+      localStorage.removeItem('user')
     }
   },
 
-  // Obtener perfil del usuario
+  // Obtener perfil desde tu backend (si quieres datos extra)
   getProfile: async () => {
-    try {
-      const response = await apiRequest('/api/auth/profile');
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiRequest('/api/auth/profile')
   },
 
-  // Verificar token
+  // Verificar token en backend
   verifyToken: async () => {
-    try {
-      const response = await apiRequest('/api/auth/verify-token');
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return await apiRequest('/api/auth/verify-token')
   },
 
-  // Obtener usuario actual del localStorage
+  // Obtener usuario actual desde localStorage
   getCurrentUser: () => {
     try {
-      const user = localStorage.getItem('user');
-      return user ? JSON.parse(user) : null;
+      const user = localStorage.getItem('user')
+      return user ? JSON.parse(user) : null
     } catch (error) {
-      console.error('Error obteniendo usuario:', error);
-      return null;
+      console.error('Error obteniendo usuario:', error)
+      return null
     }
   },
 
-  // Obtener token del localStorage
-  getToken: () => {
-    return localStorage.getItem('authToken');
-  },
+  // Obtener token desde localStorage
+  getToken: () => localStorage.getItem('authToken'),
 
-  // Verificar si el usuario está autenticado
+  // Verificar si está autenticado
   isAuthenticated: () => {
-    const token = localStorage.getItem('authToken');
-    const user = localStorage.getItem('user');
-    return !!(token && user);
+    const token = localStorage.getItem('authToken')
+    const user = localStorage.getItem('user')
+    return !!(token && user)
   },
-};
+}

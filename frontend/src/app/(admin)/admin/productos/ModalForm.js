@@ -1,3 +1,5 @@
+//productos/ModalForm.js
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -97,30 +99,25 @@ export default function ProductoForm({ producto, onSubmit, onCancel, disabled })
     setImagePreview(null)
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    if (isNaN(parseFloat(formData.precio)) || parseFloat(formData.precio) <= 0) {
-      alert('Ingrese un precio válido mayor que cero')
-      return
-    }
-
-    const data = new FormData()
-
-    Object.keys(formData).forEach(key => {
-      data.append(key, formData[key])
-    })
-
-    if (imagenFile) {
-      data.append('imagen', imagenFile)
-    }
-
-    if (eliminarImagen) {
-      data.append('eliminarImagen', 'true')
-    }
-
-    onSubmit(data)
+  if (isNaN(parseFloat(formData.precio)) || parseFloat(formData.precio) <= 0) {
+    alert('Ingrese un precio válido mayor que cero');
+    return;
   }
+
+  const data = new FormData();
+  Object.keys(formData).forEach(key => {
+    data.append(key, formData[key]);
+  });
+
+  if (imagenFile) data.append('imagen', imagenFile);
+  if (eliminarImagen) data.append('eliminarImagen', 'true');
+
+  const token = localStorage.getItem('token'); 
+  onSubmit(data, token); // <-- Llama al padre con FormData y token
+};
 
   const getImageUrl = (producto) => {
     if (!producto?.imagen) return null

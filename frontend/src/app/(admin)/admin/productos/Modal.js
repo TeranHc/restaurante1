@@ -1,3 +1,4 @@
+//productos/Modal.js
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -48,32 +49,60 @@ export default function ModalProductos({ open, onClose }) {
     onClose()
   }
 
-  const handleFormSubmit = async (formData) => {
-    setSaving(true)
-    try {
-      let res
-      if (editProducto) {
-        res = await fetch(`http://localhost:3001/api/productos/${editProducto.id}`, {
-          method: 'PUT',
-          body: formData,
-        })
-      } else {
-        res = await fetch('http://localhost:3001/api/productos', {
-          method: 'POST',
-          body: formData,
-        })
-      }
-      if (!res.ok) throw new Error('Error guardando producto')
-      await fetchProductos()
-      setEditProducto(null)
-      setShowForm(false)
-    } catch (error) {
-      console.error(error)
-      alert('Error guardando producto')
-    } finally {
-      setSaving(false)
+const handleFormSubmit = async (formData, token) => {
+  setSaving(true);
+
+  try {
+    if (!token) {
+      alert('No estás autenticado. Inicia sesión.');
+      setSaving(false);
+      return;
     }
+
+    let res;
+    if (editProducto) {
+      res = await fetch(`http://localhost:3001/api/productos/${editProducto.id}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+    } else {
+      res = await fetch('http://localhost:3001/api/productos', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+    }
+
+    if (res.status === 403) {
+      alert('Acceso denegado. Necesitas ser administrador.');
+      setSaving(false);
+      return;
+    }
+
+    if (res.status === 401) {
+      alert('Tu sesión ha expirado. Inicia sesión de nuevo.');
+      setSaving(false);
+      return;
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Error guardando producto');
+    }
+
+    await fetchProductos();
+    setEditProducto(null);
+    setShowForm(false);
+
+  } catch (error) {
+    console.error(error);
+    alert('Error guardando producto: ' + error.message);
+  } finally {
+    setSaving(false);
   }
+};
+
 
   const handleEdit = (producto) => {
     setEditProducto(producto)
@@ -90,19 +119,47 @@ export default function ModalProductos({ open, onClose }) {
     setShowForm(false)
   }
 
-  const handleDelete = async (producto) => {
-    if (!confirm('¿Seguro que deseas eliminar este producto?')) return
-    try {
-      const res = await fetch(`http://localhost:3001/api/productos/${producto.id}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) throw new Error('Error al eliminar producto')
-      await fetchProductos()
-    } catch (error) {
-      console.error(error)
-      alert('Error eliminando producto')
+const handleDelete = async (producto) => {
+  if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
+
+  setSaving(true); // opcional, si usas estado de guardado
+  try {
+    const token = localStorage.getItem('token'); // <-- tu JWT
+    if (!token) {
+      alert('No estás autenticado.');
+      setSaving(false);
+      return;
     }
+
+    const res = await fetch(`http://localhost:3001/api/productos/${producto.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`, // <-- agregar token
+      },
+    });
+
+    if (res.status === 403) {
+      alert('Acceso denegado. Necesitas ser administrador.');
+      setSaving(false);
+      return;
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Error al eliminar producto');
+    }
+
+    await fetchProductos();
+    alert('Producto eliminado correctamente');
+
+  } catch (error) {
+    console.error(error);
+    alert('Error eliminando producto: ' + error.message);
+  } finally {
+    setSaving(false);
   }
+};
+
 
   // Ordenar columnas
   const handleSort = (column) => {

@@ -16,16 +16,22 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel }) {
     }
   }, [categoria])
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!name.trim()) {
-      alert('El nombre es obligatorio')
-      return
-    }
-    onSubmit({ name, description })
-    setName('')
-    setDescription('')
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!name.trim()) {
+    alert('El nombre es obligatorio');
+    return;
   }
+
+  const categoriaData = { name, description };
+  const token = localStorage.getItem('token'); // opcional si quieres pasarlo aquí
+  onSubmit(categoriaData, token);
+
+  setName('');
+  setDescription('');
+};
+
 
   return (
     <form onSubmit={handleSubmit} className="mb-4 flex flex-wrap items-center gap-4">

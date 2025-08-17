@@ -11,7 +11,28 @@ export default function Page() {
   const fetchReservas = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/reservations')
+      // Obtener token de localStorage
+      const token = localStorage.getItem('token')
+      if (!token) {
+        alert('No estás autenticado.')
+        setLoading(false)
+        return
+      }
+
+      const res = await fetch('http://localhost:3001/api/reservations', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (res.status === 403) {
+        alert('Acceso denegado. No tienes permisos para ver reservas.')
+        setLoading(false)
+        return
+      }
+
       if (!res.ok) throw new Error('Error al cargar reservas')
       const data = await res.json()
       setReservas(data)
@@ -28,8 +49,14 @@ export default function Page() {
 
   const onFormSubmit = async (formData) => {
     try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        alert('No estás autenticado.')
+        return
+      }
+
       const data = {
-        user_id: Number(formData.userId),
+        user_id: formData.userId, // Mantener como string UUID
         restaurant_id: Number(formData.restaurantId),
         reservation_date: formData.reservationDate,
         reservation_time: formData.reservationTime,
@@ -39,6 +66,8 @@ export default function Page() {
       }
 
       console.log('✅ Datos preparados para enviar:', data)
+      console.log('user_id type:', typeof data.user_id, 'value:', data.user_id)
+      console.log('user_id length:', data.user_id ? data.user_id.length : 'undefined')
 
       const url = editReserva
         ? `http://localhost:3001/api/reservations/${editReserva.id}`
@@ -46,14 +75,29 @@ export default function Page() {
 
       const res = await fetch(url, {
         method: editReserva ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(data),
       })
 
-      if (!res.ok) throw new Error('Error al guardar reserva')
+      console.log('Response status:', res.status)
+
+      if (res.status === 403) {
+        alert('Acceso denegado. No tienes permisos para modificar reservas.')
+        return
+      }
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error('Error response:', errorData)
+        throw new Error(errorData.message || errorData.error || 'Error al guardar reserva')
+      }
 
       await fetchReservas()
       setEditReserva(null)
+      alert(editReserva ? 'Reserva actualizada correctamente' : 'Reserva creada correctamente')
     } catch (error) {
       alert(error.message)
     }
@@ -61,12 +105,33 @@ export default function Page() {
 
   const onDelete = async (id) => {
     if (!confirm('¿Seguro que deseas eliminar esta reserva?')) return
+    
     try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        alert('No estás autenticado.')
+        return
+      }
+
       const res = await fetch(`http://localhost:3001/api/reservations/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
-      if (!res.ok) throw new Error('Error al eliminar reserva')
+
+      if (res.status === 403) {
+        alert('Acceso denegado. No tienes permisos para eliminar reservas.')
+        return
+      }
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Error al eliminar reserva')
+      }
+
       await fetchReservas()
+      alert('Reserva eliminada correctamente')
     } catch (error) {
       alert(error.message)
     }

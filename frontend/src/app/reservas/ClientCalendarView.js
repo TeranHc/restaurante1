@@ -1,28 +1,89 @@
+'use client';
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Edit2, Trash2, Calendar, X } from 'lucide-react';
+import { Calendar, Clock, Users, MapPin, ArrowRight, Info, XCircle } from 'lucide-react';
 
-const CalendarView = ({ 
+// 🔥 FUNCIÓN CORREGIDA PARA OBTENER TOKEN - Misma que en ReservationAdmin
+const getAuthToken = () => {
+  return localStorage.getItem('token') || 
+         localStorage.getItem('authToken') || 
+         localStorage.getItem('adminToken');
+};
+
+// 🔥 FUNCIÓN PARA HACER PETICIONES AUTENTICADAS - Misma que en ReservationAdmin
+const authenticatedFetch = async (url, options = {}) => {
+  const token = getAuthToken();
+  
+  if (!token) {
+    console.error('❌ No se encontró token de autenticación');
+    throw new Error('No estás autenticado. Por favor inicia sesión.');
+  }
+  
+  const config = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    }
+  };
+  
+  console.log('🔐 Haciendo petición autenticada a:', url);
+  console.log('🔐 Con token:', token ? token.substring(0, 20) + '...' : 'NO');
+  
+  const response = await fetch(url, config);
+  
+  // Si el token es inválido, limpiar localStorage y mostrar error
+  if (response.status === 401) {
+    console.error('❌ Token inválido o expirado');
+    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('adminToken');
+    throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
+  }
+  
+  return response;
+};
+
+const ClientCalendarView = ({ 
   slots, 
   restaurants, 
-  selectedRestaurant, 
-  selectedTimeSlot, // filtro de horario
-  onCreateSlot, 
-  onEditSlot, 
-  onDeleteSlot 
+  selectedRestaurant,
+  selectedTimeSlot,
+  onDateClick
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clickedDate, setClickedDate] = useState(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  
-  // NUEVO: Estado interno para el filtro de fecha del calendario
   const [internalSelectedDate, setInternalSelectedDate] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [authError, setAuthError] = useState(null); // 🔥 NUEVO: Estado para errores de autenticación
 
-  // Efecto para sincronizar currentDate con internalSelectedDate
+  // 🔥 FUNCIÓN PARA VERIFICAR AUTENTICACIÓN
+  const checkAuthStatus = () => {
+    const token = getAuthToken();
+    if (!token) {
+      const errorMsg = 'No se encontró token de autenticación. Por favor inicia sesión.';
+      console.warn('⚠️', errorMsg);
+      setAuthError(errorMsg);
+      return false;
+    } else {
+      console.log('✅ Token de autenticación encontrado en calendario');
+      setAuthError(null);
+      return true;
+    }
+  };
+
+  // Verificar autenticación al montar el componente
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  // Sincronizar currentDate con internalSelectedDate
   useEffect(() => {
     if (internalSelectedDate) {
       const filterDate = new Date(internalSelectedDate);
-      // Solo cambiar el mes si la fecha filtrada está en un mes diferente
       if (filterDate.getMonth() !== currentDate.getMonth() || 
           filterDate.getFullYear() !== currentDate.getFullYear()) {
         setCurrentDate(new Date(filterDate.getFullYear(), filterDate.getMonth(), 1));
@@ -30,7 +91,7 @@ const CalendarView = ({
     }
   }, [internalSelectedDate]);
 
-  // Cerrar tooltip si se hace click fuera
+  // Cerrar tooltip al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showTooltip && !event.target.closest('.tooltip-container') && !event.target.closest('.calendar-day')) {
@@ -42,7 +103,45 @@ const CalendarView = ({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showTooltip]);
 
-  // Obtener el primer y último día del mes actual
+  // 🔥 COMPONENTE PARA MOSTRAR ERROR DE AUTENTICACIÓN
+  const AuthErrorMessage = () => (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+        <XCircle className="w-6 h-6 text-red-600" />
+      </div>
+      <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+        Error de Autenticación en Calendario
+      </h3>
+      <p className="text-sm text-gray-600 text-center mb-4">
+        {authError}
+      </p>
+      <div className="flex space-x-3">
+        <button
+          onClick={() => {
+            setAuthError(null);
+            checkAuthStatus();
+          }}
+          className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Reintentar
+        </button>
+        <button
+          onClick={() => {
+            window.location.href = '/login';
+          }}
+          className="flex-1 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Ir a Login
+        </button>
+      </div>
+    </div>
+  );
+
+  // 🔥 MOSTRAR ERROR DE AUTENTICACIÓN SI EXISTE
+  if (authError) {
+    return <AuthErrorMessage />;
+  }
+
   const getMonthBounds = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -51,7 +150,6 @@ const CalendarView = ({
     return { firstDay, lastDay };
   };
 
-  // Generar los días del calendario
   const generateCalendarDays = () => {
     const { firstDay, lastDay } = getMonthBounds(currentDate);
     const firstDayOfWeek = firstDay.getDay();
@@ -84,7 +182,6 @@ const CalendarView = ({
     return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
   };
 
-  // Navegar entre meses
   const navigateMonth = (direction) => {
     setCurrentDate(prev => {
       const newDate = new Date(prev);
@@ -93,7 +190,6 @@ const CalendarView = ({
     });
   };
 
-  // MODIFICADO: Obtener slots filtrados por fecha interna, restaurante Y horario
   const getAllSlotsForDate = (date) => {
     const dateString = date.toISOString().split('T')[0];
     const today = new Date();
@@ -108,7 +204,7 @@ const CalendarView = ({
       dateSlots = dateSlots.filter(slot => slot.restaurant_id.toString() === selectedRestaurant);
     }
 
-    // Filtrar por horario usando el campo 'time' de la tabla available_slots
+    // Filtrar por horario
     if (selectedTimeSlot !== '' && selectedTimeSlot !== 'all') {
       dateSlots = dateSlots.filter(slot => slot.time === selectedTimeSlot);
     }
@@ -120,32 +216,45 @@ const CalendarView = ({
     }));
   };
 
-  // Función para determinar si un día debe estar resaltado por el filtro interno
   const isDayHighlighted = (date) => {
     if (!internalSelectedDate) return false;
     const dateString = date.toISOString().split('T')[0];
     return dateString === internalSelectedDate;
   };
 
-  // NUEVO: Función para determinar si un día debe mostrarse (cuando hay filtro de fecha)
   const shouldShowDay = (date) => {
     if (!internalSelectedDate) return true;
     const dateString = date.toISOString().split('T')[0];
     return dateString === internalSelectedDate;
   };
 
-  // Obtener el nombre del restaurante
-  const getRestaurantName = (id) => {
+  const getRestaurantInfo = (id) => {
     const restaurant = restaurants.find(r => r.id === id);
-    return restaurant ? restaurant.name : `Restaurante ${id}`;
+    return restaurant ? restaurant : { 
+      name: `Restaurante ${id}`, 
+      opening_time: null, 
+      closing_time: null,
+      capacity: null,
+      address: null
+    };
   };
 
-  // Función para formatear el horario
-  const formatTimeSlot = (slot) => {
-    return slot.time || 'Sin horario';
+  // FUNCIÓN ACTUALIZADA para mostrar horario del restaurante
+  const formatRestaurantSchedule = (slot) => {
+    const restaurant = getRestaurantInfo(slot.restaurant_id);
+    
+    if (restaurant.opening_time && restaurant.closing_time) {
+      return `${restaurant.opening_time} - ${restaurant.closing_time}`;
+    }
+    
+    // Si hay time específico en el slot, mostrarlo
+    if (slot.time) {
+      return slot.time;
+    }
+    
+    return 'Horario no especificado';
   };
 
-  // MODIFICADO: Obtener el estilo del día considerando múltiples slots y filtro de fecha
   const getDayStyle = (dayInfo) => {
     const { date, isCurrentMonth } = dayInfo;
     const allSlots = getAllSlotsForDate(date);
@@ -157,22 +266,20 @@ const CalendarView = ({
 
     let baseClasses = "relative h-16 border border-gray-200 transition-all duration-200 cursor-pointer hover:border-blue-300";
     
-    // Si hay filtro de fecha y este día no debe mostrarse, aplicar estilo desvanecido
     if (internalSelectedDate && !shouldShow) {
-      baseClasses += "  pointer-events-none";
+      baseClasses += " opacity-30 pointer-events-none";
     }
     
     if (!isCurrentMonth) {
       baseClasses += " bg-gray-100 text-gray-400";
     } else if (isPast) {
-      baseClasses += " bg-gray-200 text-gray-500";
+      baseClasses += " bg-gray-200 text-gray-500 cursor-not-allowed";
     } else if (isToday) {
       baseClasses += " bg-yellow-50 border-yellow-300";
     } else if (isHighlighted) {
-      // Estilo especial para día filtrado
       baseClasses += " bg-blue-100 border-blue-400 ring-2 ring-blue-300";
     } else {
-      baseClasses += " ";
+      baseClasses += " hover:bg-blue-50";
     }
 
     if (allSlots.length > 0 && shouldShow) {
@@ -181,7 +288,7 @@ const CalendarView = ({
       const unavailableSlots = allSlots.filter(slot => !slot.is_available && !slot.isPastDate);
 
       if (availableSlots.length > 0) {
-        baseClasses += " border-l-4 border-l-green-500";
+        baseClasses += " border-l-4 border-l-green-500 hover:border-l-green-600";
       } else if (expiredSlots.length > 0 && unavailableSlots.length === 0) {
         baseClasses += " border-l-4 border-l-gray-400";
       } else {
@@ -192,28 +299,43 @@ const CalendarView = ({
     return baseClasses;
   };
 
-  // Manejar limpieza del filtro de fecha
   const clearDateFilter = () => {
     setInternalSelectedDate('');
   };
 
-  // Tooltip activado por click
+  // 🔥 FUNCIÓN handleDayClick MEJORADA con verificación de auth
   const handleDayClick = (event, date, allSlots) => {
+    // Verificar autenticación antes de proceder
+    if (!checkAuthStatus()) {
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const slotDate = new Date(date);
+    slotDate.setHours(0, 0, 0, 0);
+
+    // No permitir clicks en fechas pasadas
+    if (slotDate < today) return;
+
     const selectedDateString = date.toISOString().split('T')[0];
-    
-    // Si no hay slots, crear uno nuevo directamente
-    if (allSlots.length === 0) {
-      onCreateSlot(selectedDateString);
+    const availableSlots = allSlots.filter(slot => slot.is_available && !slot.isPastDate);
+
+    // Si no hay slots disponibles, mostrar mensaje
+    if (availableSlots.length === 0) {
+      const formattedDate = date.toLocaleDateString('es-ES', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      setAlertMessage(`No hay horarios disponibles para ${formattedDate}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3000);
       return;
     }
 
-    // Si hay solo un slot, editarlo directamente
-    if (allSlots.length === 1) {
-      onEditSlot(allSlots[0]);
-      return;
-    }
-
-    // Si hay múltiples slots, mostrar tooltip para seleccionar
+    // SIEMPRE mostrar tooltip para que el usuario vea la información del restaurante
     const rect = event.currentTarget.getBoundingClientRect();
     setTooltipPosition({
       x: rect.left + rect.width / 2,
@@ -223,24 +345,27 @@ const CalendarView = ({
     setShowTooltip(true);
   };
 
-  // Cerrar tooltip
   const closeTooltip = () => {
     setShowTooltip(false);
     setClickedDate(null);
   };
 
-  // Manejar acción específica de restaurante
-  const handleRestaurantAction = (slot, action) => {
+  // 🔥 FUNCIÓN handleSlotSelection MEJORADA con verificación de auth
+  const handleSlotSelection = (slot) => {
+    // Verificar autenticación antes de proceder
+    if (!checkAuthStatus()) {
+      return;
+    }
+
+    const selectedDateString = clickedDate.toISOString().split('T')[0];
     closeTooltip();
     
-    if (action === 'edit') {
-      onEditSlot(slot);
-    } else if (action === 'delete') {
-      onDeleteSlot(slot.id);
+    // Llamar la función onDateClick pasada como prop
+    if (onDateClick) {
+      onDateClick(selectedDateString, slot);
     }
   };
 
-  // Generar el estado resumido para mostrar en el día
   const getDayStatusSummary = (allSlots) => {
     if (allSlots.length === 0) return null;
 
@@ -275,7 +400,7 @@ const CalendarView = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header del calendario con filtro de fecha interno */}
+      {/* Header del calendario */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center space-x-4">
           <Calendar className="w-5 h-5 text-gray-500" />
@@ -288,9 +413,10 @@ const CalendarView = ({
           <button
             onClick={() => navigateMonth(-1)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Mes anterior"
           >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
           <button
             onClick={() => setCurrentDate(new Date())}
@@ -301,14 +427,15 @@ const CalendarView = ({
           <button
             onClick={() => navigateMonth(1)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Mes siguiente"
           >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
       </div>
 
-      {/* NUEVO: Filtro de fecha interno */}
+      {/* Filtro de fecha interno */}
       <div className="px-4 py-3 bg-blue-50 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -324,9 +451,10 @@ const CalendarView = ({
               <button
                 onClick={clearDateFilter}
                 className="flex items-center px-2 py-1 text-xs bg-blue-200 text-blue-800 rounded-lg hover:bg-blue-300 transition-colors"
-                title="Limpiar filtro de fecha"
               >
-                <X className="w-3 h-3 mr-1" />
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
                 Limpiar
               </button>
             )}
@@ -360,10 +488,6 @@ const CalendarView = ({
             <div className="w-3 h-3 bg-gray-400 rounded-sm"></div>
             <span className="text-gray-600">Expirado</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-gray-300 rounded-sm"></div>
-            <span className="text-gray-600">Sin configurar</span>
-          </div>
           {internalSelectedDate && (
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-400 rounded-sm ring-1 ring-blue-500"></div>
@@ -372,10 +496,11 @@ const CalendarView = ({
           )}
         </div>
         
+        {/* 🔥 NUEVO: Indicador de autenticación */}
         <div className="flex items-center space-x-4 text-sm text-gray-600">
           {selectedRestaurant && (
             <div>
-              <span className="font-medium">Restaurante:</span> {getRestaurantName(parseInt(selectedRestaurant))}
+              <span className="font-medium">Restaurante:</span> {getRestaurantInfo(parseInt(selectedRestaurant)).name}
             </div>
           )}
           {selectedTimeSlot && selectedTimeSlot !== 'all' && selectedTimeSlot !== '' && (
@@ -383,6 +508,10 @@ const CalendarView = ({
               <span className="font-medium">Horario:</span> {selectedTimeSlot}
             </div>
           )}
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>Autenticado</span>
+          </div>
         </div>
       </div>
 
@@ -405,6 +534,7 @@ const CalendarView = ({
           const isPast = date < today && !isToday;
           const isHighlighted = isDayHighlighted(date);
           const shouldShow = shouldShowDay(date);
+          const availableSlots = allSlots.filter(slot => slot.is_available && !slot.isPastDate);
 
           return (
             <div
@@ -433,11 +563,11 @@ const CalendarView = ({
                 )}
               </div>
 
-              {/* Indicador de estado para múltiples slots */}
+              {/* Indicador de estado */}
               {allSlots.length > 0 && shouldShow && (
                 <div className="absolute bottom-1 left-1 right-1">
                   <div className={`text-xs px-2 py-0.5 rounded-full text-center truncate ${
-                    allSlots.some(s => s.is_available && !s.isPastDate)
+                    availableSlots.length > 0
                       ? 'bg-green-100 text-green-800' 
                       : allSlots.every(s => s.isPastDate)
                         ? 'bg-gray-100 text-gray-600 border border-gray-300' 
@@ -448,18 +578,18 @@ const CalendarView = ({
                 </div>
               )}
 
-              {/* Botón para agregar disponibilidad en días sin configurar */}
-              {allSlots.length === 0 && !isPast && isCurrentMonth && shouldShow && (
-                <div className="absolute bottom-1 right-1">
-                  <Plus className="w-3 h-3 text-gray-400" />
+              {/* Indicador de clic disponible */}
+              {availableSlots.length > 0 && !isPast && isCurrentMonth && shouldShow && (
+                <div className="absolute top-1 right-1">
+                  <ArrowRight className="w-3 h-3 text-blue-500" />
                 </div>
               )}
 
-              {/* Indicador de múltiples restaurantes */}
-              {allSlots.length > 1 && shouldShow && (
-                <div className="absolute top-1 right-1">
+              {/* Indicador de múltiples opciones */}
+              {availableSlots.length > 1 && shouldShow && (
+                <div className="absolute top-1 left-1">
                   <div className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                    {allSlots.length}
+                    {availableSlots.length}
                   </div>
                 </div>
               )}
@@ -468,10 +598,9 @@ const CalendarView = ({
         })}
       </div>
 
-      {/* Tooltip activado por click */}
+      {/* Tooltip para selección de horarios - ACTUALIZADO CON CAPACIDAD */}
       {showTooltip && clickedDate && (
         <>
-          {/* Overlay para cerrar al hacer click fuera */}
           <div 
             className="fixed inset-0 z-40 bg-opacity-10"
             onClick={closeTooltip}
@@ -505,61 +634,65 @@ const CalendarView = ({
                 </div>
                 
                 <div className="space-y-3">
-                  {getAllSlotsForDate(clickedDate).map((slot, index) => (
-                    <div key={index} className="bg-gray-800 rounded-lg p-3 border border-gray-600">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="font-medium text-sm">
-                          {getRestaurantName(slot.restaurant_id)}
+                  {getAllSlotsForDate(clickedDate)
+                    .filter(slot => slot.is_available && !slot.isPastDate)
+                    .map((slot, index) => {
+                      const restaurantInfo = getRestaurantInfo(slot.restaurant_id);
+                      return (
+                        <div key={index} className="bg-gray-800 rounded-lg p-3 border border-gray-600 hover:bg-gray-700 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="font-medium text-sm">
+                              {restaurantInfo.name}
+                            </div>
+                            <div className="text-xs px-2 py-1 rounded-full bg-green-200 text-green-800">
+                              Disponible
+                            </div>
+                          </div>
+                          
+                          <div className="text-xs text-gray-400 mb-2 flex items-center">
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            <span className="font-medium">Horario:</span>
+                            <span className="ml-1">{formatRestaurantSchedule(slot)}</span>
+                          </div>
+                          
+                          {/* Capacidad del restaurante */}
+                          {restaurantInfo.capacity && (
+                            <div className="text-xs text-gray-400 mb-2 flex items-center">
+                              <Users className="w-3 h-3 inline mr-1" />
+                              <span className="font-medium">Capacidad:</span>
+                              <span className="ml-1">{restaurantInfo.capacity} personas</span>
+                            </div>
+                          )}
+                          
+                          {/* Información adicional del restaurante */}
+                          {restaurantInfo.address && (
+                            <div className="text-xs text-gray-400 mb-3 flex items-start">
+                              <MapPin className="w-3 h-3 inline mr-1 mt-0.5 flex-shrink-0" />
+                              <span className="text-left">{restaurantInfo.address}</span>
+                            </div>
+                          )}
+                          
+                          <button
+                            onClick={() => handleSlotSelection(slot)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm flex items-center justify-center space-x-2 transition-colors"
+                          >
+                            <span>Reservar</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
                         </div>
-                        <div className={`text-xs px-2 py-1 rounded-full ${
-                          slot.is_available && !slot.isPastDate
-                            ? 'bg-green-200 text-green-800'
-                            : slot.isPastDate
-                            ? 'bg-gray-200 text-gray-700'
-                            : 'bg-red-200 text-red-800'
-                        }`}>
-                          {slot.is_available && !slot.isPastDate
-                            ? 'Disponible'
-                            : slot.isPastDate
-                            ? 'Expirado'
-                            : 'No Disponible'
-                          }
-                        </div>
-                      </div>
-                      
-                      {/* Mostrar horario en el tooltip */}
-                      <div className="text-xs text-gray-400 mb-2">
-                        {formatTimeSlot(slot)}
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleRestaurantAction(slot, 'edit')}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs flex items-center justify-center space-x-1 transition-colors"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                          <span>Editar</span>
-                        </button>
-                        <button
-                          onClick={() => handleRestaurantAction(slot, 'delete')}
-                          className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs flex items-center justify-center space-x-1 transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span>Eliminar</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
                 </div>
 
-                {/* Resumen general */}
                 <div className="mt-3 pt-3 border-t border-gray-600 text-center text-xs text-gray-300">
-                  {getAllSlotsForDate(clickedDate).filter(s => s.is_available && !s.isPastDate).length} disponibles de {getAllSlotsForDate(clickedDate).length} slots
+                  {getAllSlotsForDate(clickedDate).filter(slot => slot.is_available && !slot.isPastDate).length === 1 
+                    ? "Haz clic en 'Reservar' para continuar"
+                    : "Selecciona un horario para continuar con tu reserva"
+                  }
                 </div>
               </div>
             </div>
             
-            {/* Flecha del tooltip */}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2">
               <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-gray-700"></div>
             </div>
@@ -567,24 +700,33 @@ const CalendarView = ({
         </>
       )}
 
-      {/* Footer con estadísticas considerando filtros */}
+      {/* Alert personalizado */}
+      {showAlert && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg border border-red-600 flex items-center space-x-3 animate-fade-in-down">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="text-sm font-medium">
+              {alertMessage}
+            </div>
+            <button
+              onClick={() => setShowAlert(false)}
+              className="flex-shrink-0 text-red-200 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Footer con estadísticas */}
       <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <div>
-            <span className="font-medium">{slots.length}</span> días configurados
-            {(internalSelectedDate || selectedRestaurant || selectedTimeSlot) && (
-              <span className="text-xs text-gray-500 ml-2">
-                (filtrados: {
-                  slots.filter(slot => {
-                    const matchesDate = !internalSelectedDate || slot.date === internalSelectedDate;
-                    const matchesRestaurant = selectedRestaurant === '' || slot.restaurant_id.toString() === selectedRestaurant;
-                    const matchesTimeSlot = selectedTimeSlot === '' || selectedTimeSlot === 'all' || slot.time === selectedTimeSlot;
-                    return matchesDate && matchesRestaurant && matchesTimeSlot;
-                  }).length
-                })
-              </span>
-            )}
-          </div>
           <div className="flex items-center space-x-4">
             <span>
               <span className="font-medium text-green-600">
@@ -595,24 +737,12 @@ const CalendarView = ({
                   slotDate.setHours(0, 0, 0, 0);
                   return slot.is_available && slotDate >= today;
                 }).length}
-              </span> disponibles
+              </span> horarios disponibles
             </span>
-            <span>
-              <span className="font-medium text-red-600">
-                {slots.filter(slot => !slot.is_available).length}
-              </span> cerrados
-            </span>
-            <span>
-              <span className="font-medium text-gray-600">
-                {slots.filter(slot => {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const slotDate = new Date(slot.date);
-                  slotDate.setHours(0, 0, 0, 0);
-                  return slot.is_available && slotDate < today;
-                }).length}
-              </span> expirados
-            </span>
+          </div>
+          <div className="text-xs text-gray-500">
+            <Info className="w-3 h-3 inline mr-1" />
+            Haz clic en una fecha para reservar
           </div>
         </div>
       </div>
@@ -620,4 +750,4 @@ const CalendarView = ({
   );
 };
 
-export default CalendarView;
+export default ClientCalendarView;

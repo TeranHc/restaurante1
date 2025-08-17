@@ -1,10 +1,155 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, MapPin, Plus, Edit2, Trash2, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Calendar, Clock, Users, MapPin, Plus, Edit2, Trash2, CheckCircle, AlertCircle, XCircle, Search, X } from 'lucide-react';
 import SlotModal from './SlotModal';
 import ReservationModal from './ReservationModal';
 import CalendarView from './CalendarView';
+
+// 🔥 FUNCIÓN CORREGIDA PARA OBTENER TOKEN - Usar las mismas claves que en tu código funcional
+const getAuthToken = () => {
+  // Probar las mismas claves que usas en tu código que funciona
+  return localStorage.getItem('token') || 
+         localStorage.getItem('authToken') || 
+         localStorage.getItem('adminToken');
+};
+
+// 🔥 FUNCIÓN PARA HACER PETICIONES AUTENTICADAS
+const authenticatedFetch = async (url, options = {}) => {
+  const token = getAuthToken();
+  
+  if (!token) {
+    console.error('❌ No se encontró token de autenticación');
+    throw new Error('No estás autenticado. Por favor inicia sesión.');
+  }
+  
+  const config = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    }
+  };
+  
+  console.log('🔐 Haciendo petición autenticada a:', url);
+  console.log('🔐 Con token:', token ? token.substring(0, 20) + '...' : 'NO');
+  
+  const response = await fetch(url, config);
+  
+  // Si el token es inválido, limpiar localStorage y mostrar error
+  if (response.status === 401) {
+    console.error('❌ Token inválido o expirado');
+    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('adminToken');
+    throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
+  }
+  
+  return response;
+};
+
+// 🔥 COMPONENTE FUERA: ReservationFilters definido fuera del componente principal
+const ReservationFilters = ({ 
+  selectedDate, 
+  setSelectedDate, 
+  selectedRestaurant, 
+  setSelectedRestaurant, 
+  searchUser, 
+  setSearchUser, 
+  restaurants, 
+  filteredReservations, 
+  reservations, 
+  getRestaurantName, 
+  clearFilters 
+}) => {
+  console.log('🔄 ReservationFilters renderizado', { searchUser });
+
+  return (
+    <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Primera fila: Fecha y Restaurante */}
+        <div className="flex items-center space-x-2">
+          <Calendar className="w-4 h-4 text-gray-500" />
+          <label className="text-sm font-medium text-gray-700">Fecha:</label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="border text-black border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex-1"
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <MapPin className="w-4 h-4 text-gray-500" />
+          <label className="text-sm font-medium text-gray-700">Restaurante:</label>
+          <select
+            value={selectedRestaurant}
+            onChange={(e) => setSelectedRestaurant(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black flex-1"
+          >
+            <option value="">Todos los restaurantes</option>
+            {restaurants.map(restaurant => (
+              <option key={restaurant.id} value={restaurant.id}>
+                {restaurant.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 🔥 CAMPO DE BÚSQUEDA CORREGIDO */}
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-medium text-gray-700">Cliente:</label>
+          <input
+            type="text"
+            value={searchUser}
+            onChange={(e) => {
+              console.log('📝 Input onChange:', e.target.value);
+              setSearchUser(e.target.value);
+            }}
+            placeholder="Buscar por nombre..."
+            className="px-3 py-2 flex-1 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900"
+          />
+        </div>
+      </div>
+
+      {/* Filtros activos */}
+      {(selectedDate || selectedRestaurant || searchUser.trim()) && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <span className="font-medium">Filtros activos:</span>
+              {selectedDate && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  Fecha: {new Date(selectedDate).toLocaleDateString('es-ES')}
+                </span>
+              )}
+              {selectedRestaurant && (
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                  {getRestaurantName(parseInt(selectedRestaurant))}
+                </span>
+              )}
+              {searchUser.trim() && (
+                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                  Cliente: "{searchUser.trim()}"
+                </span>
+              )}
+              <span className="text-gray-500">
+                ({filteredReservations.length} de {reservations.length} reservas)
+              </span>
+            </div>
+            <button
+              onClick={clearFilters}
+              className="px-3 py-2 text-xs bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ReservationAdmin = () => {
   const [activeTab, setActiveTab] = useState('calendar');
@@ -12,22 +157,43 @@ const ReservationAdmin = () => {
   const [users, setUsers] = useState([]);
   const [slots, setSlots] = useState([]);
   const [reservations, setReservations] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState('');
   const [selectedRestaurant, setSelectedRestaurant] = useState('');
+  const [searchUser, setSearchUser] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
-  // 🔥 NUEVO ESTADO: Para manejar la fecha seleccionada del calendario
   const [calendarSelectedDate, setCalendarSelectedDate] = useState('');
+  const [authError, setAuthError] = useState(null); // 🔥 NUEVO: Estado para errores de autenticación
+
+  // 🔥 FUNCIÓN MEJORADA PARA VERIFICAR AUTENTICACIÓN
+  const checkAuthStatus = () => {
+    const token = getAuthToken();
+    if (!token) {
+      const errorMsg = 'No se encontró token de autenticación. Por favor inicia sesión.';
+      console.warn('⚠️', errorMsg);
+      setAuthError(errorMsg);
+      return false;
+    } else {
+      console.log('✅ Token de autenticación encontrado');
+      setAuthError(null);
+      return true;
+    }
+  };
 
   // Cargar datos iniciales
   useEffect(() => {
-    fetchData();
+    if (checkAuthStatus()) {
+      fetchData();
+    }
   }, []);
 
+  // 🔥 FUNCIÓN fetchData MEJORADA con manejo de errores de autenticación
   const fetchData = async () => {
     setLoading(true);
+    setAuthError(null); // Limpiar errores previos
+    
     try {
       console.log('🔄 Iniciando carga de datos...');
       
@@ -40,110 +206,175 @@ const ReservationAdmin = () => {
       
       console.log('🌐 URLs de API que se están llamando:', apiUrls);
 
-      const [restaurantsRes, usersRes, slotsRes, reservationsRes] = await Promise.all([
-        fetch(apiUrls.restaurants),
-        fetch(apiUrls.users),
-        fetch(apiUrls.slots),
-        fetch(apiUrls.reservations)
+      // 🔥 USAR authenticatedFetch con manejo de errores mejorado
+      const results = await Promise.allSettled([
+        authenticatedFetch(apiUrls.restaurants),
+        authenticatedFetch(apiUrls.users),
+        authenticatedFetch(apiUrls.slots),
+        authenticatedFetch(apiUrls.reservations)
       ]);
 
-      console.log('📡 Respuestas de API:', {
-        restaurants: { status: restaurantsRes.status, ok: restaurantsRes.ok },
-        users: { status: usersRes.status, ok: usersRes.ok },
-        slots: { status: slotsRes.status, ok: slotsRes.ok },
-        reservations: { status: reservationsRes.status, ok: reservationsRes.ok }
-      });
+      const [restaurantsRes, usersRes, slotsRes, reservationsRes] = results;
 
-      if (restaurantsRes.ok) {
-        const restaurantsData = await restaurantsRes.json();
+      // Procesar restaurants
+      if (restaurantsRes.status === 'fulfilled' && restaurantsRes.value.ok) {
+        const restaurantsData = await restaurantsRes.value.json();
         console.log('🏪 Datos de restaurantes:', restaurantsData);
-        console.log('🏪 Total restaurantes cargados:', restaurantsData?.length || 0);
         setRestaurants(Array.isArray(restaurantsData) ? restaurantsData : []);
       } else {
-        const errorText = await restaurantsRes.text();
-        console.error('❌ Error en restaurantes:', {
-          status: restaurantsRes.status,
-          statusText: restaurantsRes.statusText,
-          error: errorText
-        });
+        console.error('❌ Error en restaurantes:', restaurantsRes.reason || 'Error desconocido');
       }
 
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
+      // Procesar users
+      if (usersRes.status === 'fulfilled' && usersRes.value.ok) {
+        const usersData = await usersRes.value.json();
         console.log('👥 Datos de usuarios:', usersData);
-        console.log('👥 Total usuarios cargados:', usersData?.length || 0);
         setUsers(Array.isArray(usersData) ? usersData : []);
       } else {
-        const errorText = await usersRes.text();
-        console.error('❌ Error en usuarios:', {
-          status: usersRes.status,
-          statusText: usersRes.statusText,
-          error: errorText
-        });
+        console.error('❌ Error en usuarios:', usersRes.reason || 'Error desconocido');
       }
 
-      if (slotsRes.ok) {
-        const slotsData = await slotsRes.json();
+      // Procesar slots
+      if (slotsRes.status === 'fulfilled' && slotsRes.value.ok) {
+        const slotsData = await slotsRes.value.json();
         console.log('⏰ Datos de slots:', slotsData);
-        console.log('⏰ Total slots cargados:', slotsData?.length || 0);
         setSlots(Array.isArray(slotsData) ? slotsData : []);
       } else {
-        const errorText = await slotsRes.text();
-        console.error('❌ Error en slots:', {
-          status: slotsRes.status,
-          statusText: slotsRes.statusText,
-          error: errorText
-        });
+        console.error('❌ Error en slots:', slotsRes.reason || 'Error desconocido');
       }
 
-      if (reservationsRes.ok) {
-        const reservationsData = await reservationsRes.json();
+      // Procesar reservations
+      if (reservationsRes.status === 'fulfilled' && reservationsRes.value.ok) {
+        const reservationsData = await reservationsRes.value.json();
         console.log('📅 Datos de reservas:', reservationsData);
-        console.log('📅 Total reservas cargadas:', reservationsData?.length || 0);
         setReservations(Array.isArray(reservationsData) ? reservationsData : []);
       } else {
-        const errorText = await reservationsRes.text();
-        console.error('❌ Error en reservas:', {
-          status: reservationsRes.status,
-          statusText: reservationsRes.statusText,
-          error: errorText
-        });
+        console.error('❌ Error en reservas:', reservationsRes.reason || 'Error desconocido');
       }
 
     } catch (error) {
       console.error('💥 Error de red cargando datos:', error);
+      if (error.message.includes('autenticación') || error.message.includes('sesión')) {
+        setAuthError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Filtrar datos por fecha y restaurante - CORREGIDO
-  const filteredSlots = slots.filter(slot => {
-    const matchesDate = !selectedDate || slot.date === selectedDate;
-    const matchesRestaurant = selectedRestaurant === '' || slot.restaurant_id.toString() === selectedRestaurant;
-    return matchesDate && matchesRestaurant;
-  });
+  // 🔥 COMPONENTE PARA MOSTRAR ERROR DE AUTENTICACIÓN
+  const AuthErrorMessage = () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+          <XCircle className="w-6 h-6 text-red-600" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+          Error de Autenticación
+        </h3>
+        <p className="text-sm text-gray-600 text-center mb-4">
+          {authError}
+        </p>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => {
+              setAuthError(null);
+              if (checkAuthStatus()) {
+                fetchData();
+              }
+            }}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Reintentar
+          </button>
+          <button
+            onClick={() => {
+              // Aquí podrías redirigir al login
+              window.location.href = '/login'; // O usar tu router
+            }}
+            className="flex-1 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Ir a Login
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
-  const filteredReservations = reservations.filter(reservation => {
-    const matchesDate = !selectedDate || reservation.reservation_date === selectedDate;
-    const matchesRestaurant = selectedRestaurant === '' || reservation.restaurant_id.toString() === selectedRestaurant;
-    return matchesDate && matchesRestaurant;
-  });
+  // 🔥 MOSTRAR ERROR DE AUTENTICACIÓN SI EXISTE
+  if (authError) {
+    return <AuthErrorMessage />;
+  }
 
+  // Filtrar slots - OPTIMIZADO
+  const filteredSlots = useMemo(() => {
+    return slots.filter(slot => {
+      const matchesDate = !selectedDate || slot.date === selectedDate;
+      const matchesRestaurant = selectedRestaurant === '' || slot.restaurant_id.toString() === selectedRestaurant;
+      return matchesDate && matchesRestaurant;
+    });
+  }, [slots, selectedDate, selectedRestaurant]);
+
+  // Filtrar reservas con búsqueda por usuario - OPTIMIZADO
+  const filteredReservations = useMemo(() => {
+    return reservations.filter(reservation => {
+      const matchesDate = !selectedDate || reservation.reservation_date === selectedDate;
+      const matchesRestaurant = selectedRestaurant === '' || reservation.restaurant_id.toString() === selectedRestaurant;
+      
+      // Buscar por nombre de usuario
+      let matchesUser = true;
+      if (searchUser.trim()) {
+        const user = users.find(u => u.id === reservation.user_id);
+        if (user) {
+          const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+          const email = user.email ? user.email.toLowerCase() : '';
+          const searchTerm = searchUser.toLowerCase().trim();
+          
+          matchesUser = fullName.includes(searchTerm) || 
+                       email.includes(searchTerm) ||
+                       user.first_name.toLowerCase().includes(searchTerm) ||
+                       user.last_name.toLowerCase().includes(searchTerm);
+        } else {
+          matchesUser = false;
+        }
+      }
+      
+      return matchesDate && matchesRestaurant && matchesUser;
+    });
+  }, [reservations, selectedDate, selectedRestaurant, searchUser, users]);
+
+  // 🔥 FUNCIÓN handleDelete MEJORADA
   const handleDelete = async (type, id) => {
     if (!confirm('¿Estás seguro de eliminar este elemento?')) return;
     
     try {
       const endpoint = type === 'slot' ? 'available-slots' : 'reservations';
-      const response = await fetch(`http://localhost:3001/api/${endpoint}/${id}`, {
+      console.log('🗑️ Eliminando:', type, 'con ID:', id);
+      
+      const response = await authenticatedFetch(`http://localhost:3001/api/${endpoint}/${id}`, {
         method: 'DELETE'
       });
       
+      console.log('📡 Respuesta de eliminación:', {
+        status: response.status,
+        ok: response.ok
+      });
+      
       if (response.ok) {
-        await fetchData();
+        console.log('✅ Elemento eliminado exitosamente');
+        await fetchData(); // Recargar datos
+      } else {
+        const errorData = await response.text();
+        console.error('❌ Error eliminando:', response.status, errorData);
+        alert(`Error eliminando: ${response.status} - ${errorData}`);
       }
     } catch (error) {
-      console.error('Error eliminando:', error);
+      console.error('💥 Error eliminando:', error);
+      if (error.message.includes('autenticación') || error.message.includes('sesión')) {
+        setAuthError(error.message);
+      } else {
+        alert('Error de conexión eliminando el elemento');
+      }
     }
   };
 
@@ -157,7 +388,6 @@ const ReservationAdmin = () => {
     setShowModal(false);
     setModalType('');
     setEditingItem(null);
-    // 🔥 LIMPIAR: También limpiar la fecha seleccionada del calendario
     setCalendarSelectedDate('');
   };
 
@@ -166,21 +396,25 @@ const ReservationAdmin = () => {
     closeModal();
   };
 
-  // 🔥 NUEVA FUNCIÓN: Manejar creación de slot desde el calendario
   const handleCreateSlotFromCalendar = (dateString) => {
     console.log('📅 Fecha seleccionada del calendario:', dateString);
-    setCalendarSelectedDate(dateString); // Guardar la fecha seleccionada
-    setEditingItem(null); // Limpiar item de edición
+    setCalendarSelectedDate(dateString);
+    setEditingItem(null);
     openModal('slot');
   };
 
-  // 🔥 NUEVA FUNCIÓN: Manejar edición de slot desde el calendario
   const handleEditSlotFromCalendar = (slot) => {
     console.log('✏️ Editando slot:', slot);
-    setCalendarSelectedDate(slot.date); // Establecer la fecha del slot
+    setCalendarSelectedDate(slot.date);
     setEditingItem(slot);
     openModal('slot', slot);
   };
+
+  const clearFilters = useCallback(() => {
+    setSelectedDate('');
+    setSelectedRestaurant('');
+    setSearchUser('');
+  }, []);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -191,15 +425,15 @@ const ReservationAdmin = () => {
     }
   };
 
-  const getRestaurantName = (id) => {
+  const getRestaurantName = useCallback((id) => {
     const restaurant = restaurants.find(r => r.id === id);
     return restaurant ? restaurant.name : `Restaurante ${id}`;
-  };
+  }, [restaurants]);
 
-  const getUserName = (id) => {
+  const getUserName = useCallback((id) => {
     const user = users.find(u => u.id === id);
     return user ? `${user.first_name} ${user.last_name}` : `Usuario ${id}`;
-  };
+  }, [users]);
 
   const getAvailabilityBadge = (slot) => {
     if (!slot.is_available) {
@@ -211,52 +445,10 @@ const ReservationAdmin = () => {
     return <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Disponible</span>;
   };
 
-  // 🔥 NUEVO COMPONENTE: Filtros para la vista de horarios
+  // Filtros para la vista de horarios
   const CalendarFilters = () => (
     <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
       <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <MapPin className="w-4 h-4 text-gray-500" />
-          <label className="text-sm font-medium text-gray-700">Restaurante:</label>
-          <select
-            value={selectedRestaurant}
-            onChange={(e) => setSelectedRestaurant(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black min-w-[200px]"
-          >
-            <option value="">Todos los restaurantes</option>
-            {restaurants.map(restaurant => (
-              <option key={restaurant.id} value={restaurant.id}>
-                {restaurant.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-
-  // 🔥 NUEVO COMPONENTE: Filtros para la gestión de reservas
-  const ReservationFilters = () => (
-    <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
-      <div className="flex items-center space-x-6">
-        <div className="flex items-center space-x-2">
-          <Calendar className="w-4 h-4 text-gray-500" />
-          <label className="text-sm font-medium text-gray-700">Fecha:</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="border text-black border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          {selectedDate && (
-            <button
-              onClick={() => setSelectedDate('')}
-              className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
-            >
-              Limpiar Fecha
-            </button>
-          )}
-        </div>
         <div className="flex items-center space-x-2">
           <MapPin className="w-4 h-4 text-gray-500" />
           <label className="text-sm font-medium text-gray-700">Restaurante:</label>
@@ -334,15 +526,14 @@ const ReservationAdmin = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'calendar' && (
           <div>
-            {/* 🔥 FILTROS PARA VISTA DE HORARIOS */}
             <CalendarFilters />
             
             <CalendarView
-              slots={slots} // 🔥 CAMBIO: Pasar todos los slots, no filteredSlots
+              slots={slots}
               restaurants={restaurants}
               selectedRestaurant={selectedRestaurant}
-              onCreateSlot={handleCreateSlotFromCalendar} // 🔥 USAR NUEVA FUNCIÓN
-              onEditSlot={handleEditSlotFromCalendar} // 🔥 USAR NUEVA FUNCIÓN
+              onCreateSlot={handleCreateSlotFromCalendar}
+              onEditSlot={handleEditSlotFromCalendar}
               onDeleteSlot={(id) => handleDelete('slot', id)}
             />
           </div>
@@ -350,16 +541,31 @@ const ReservationAdmin = () => {
         
         {activeTab === 'reservations' && (
           <div className="space-y-6">
-            {/* 🔥 FILTROS PARA GESTIÓN DE RESERVAS */}
-            <ReservationFilters />
+            <ReservationFilters
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedRestaurant={selectedRestaurant}
+              setSelectedRestaurant={setSelectedRestaurant}
+              searchUser={searchUser}
+              setSearchUser={setSearchUser}
+              restaurants={restaurants}
+              filteredReservations={filteredReservations}
+              reservations={reservations}
+              getRestaurantName={getRestaurantName}
+              clearFilters={clearFilters}
+            />
             
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-lg font-medium text-gray-900">Reservas</h2>
                 <p className="text-sm text-gray-500">
                   Administra todas las reservas del sistema
-                  {selectedDate && ` - Fecha: ${new Date(selectedDate).toLocaleDateString('es-ES')}`}
-                  {selectedRestaurant && ` - Restaurante: ${getRestaurantName(parseInt(selectedRestaurant))}`}
+                  <span className="font-medium text-blue-600">
+                    {(selectedDate || selectedRestaurant || searchUser.trim()) 
+                      ? ` - Mostrando ${filteredReservations.length} de ${reservations.length} reservas`
+                      : ` - Total: ${reservations.length} reservas`
+                    }
+                  </span>
                 </p>
               </div>
               <div className="overflow-x-auto">
@@ -385,6 +591,12 @@ const ReservationAdmin = () => {
                         <tr key={reservation.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{getUserName(reservation.user_id)}</div>
+                            {(() => {
+                              const user = users.find(u => u.id === reservation.user_id);
+                              return user?.email && (
+                                <div className="text-xs text-gray-500">{user.email}</div>
+                              );
+                            })()}
                             {reservation.special_requests && (
                               <div className="text-xs text-gray-500 truncate max-w-xs" title={reservation.special_requests}>
                                 {reservation.special_requests.length > 30 
@@ -443,7 +655,12 @@ const ReservationAdmin = () => {
                 {!loading && filteredReservations.length === 0 && (
                   <div className="text-center py-8">
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No hay reservas para los filtros seleccionados</p>
+                    <p className="text-gray-500">
+                      {(selectedDate || selectedRestaurant || searchUser.trim()) 
+                        ? 'No hay reservas que coincidan con los filtros seleccionados'
+                        : 'No hay reservas registradas'
+                      }
+                    </p>
                     <p className="text-sm text-gray-400 mt-2">
                       Total de reservas en el sistema: {reservations.length}
                     </p>
@@ -452,7 +669,7 @@ const ReservationAdmin = () => {
                       className="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Crear primera reserva
+                      Crear nueva reserva
                     </button>
                   </div>
                 )}
@@ -467,7 +684,7 @@ const ReservationAdmin = () => {
         <SlotModal
           slot={editingItem}
           restaurants={restaurants}
-          selectedDate={calendarSelectedDate || selectedDate} // 🔥 USAR: Fecha del calendario o fecha del filtro
+          selectedDate={calendarSelectedDate || selectedDate}
           selectedRestaurant={selectedRestaurant}
           onSubmit={handleFormSubmit}
           onClose={closeModal}

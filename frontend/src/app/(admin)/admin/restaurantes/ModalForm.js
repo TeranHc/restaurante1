@@ -79,21 +79,23 @@ export default function RestauranteForm({ restaurante, onSubmit, onCancel, disab
     setErrors(newErrors)
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    let allErrors = {}
+const handleSubmit = (e) => {
+  e.preventDefault()
+  let allErrors = {}
 
-    if (!formData.name.trim()) allErrors.name = 'El nombre es obligatorio'
-    if (formData.phone && !/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) allErrors.phone = 'Debe tener 10 dígitos'
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) allErrors.email = 'Email no válido'
-    if (formData.capacity === '' || isNaN(formData.capacity) || Number(formData.capacity) <= 0) allErrors.capacity = 'Debe ser un número positivo'
+  if (!formData.name.trim()) allErrors.name = 'El nombre es obligatorio'
+  if (formData.phone && !/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) allErrors.phone = 'Debe tener 10 dígitos'
+  if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) allErrors.email = 'Email no válido'
+  if (formData.capacity === '' || isNaN(formData.capacity) || Number(formData.capacity) <= 0) allErrors.capacity = 'Debe ser un número positivo'
 
-    setErrors(allErrors)
+  setErrors(allErrors)
 
-    if (Object.keys(allErrors).length === 0) {
-      onSubmit({ ...formData, capacity: Number(formData.capacity) })
-    }
+  if (Object.keys(allErrors).length === 0) {
+    // Solo pasamos formData al padre
+    onSubmit({ ...formData, capacity: Number(formData.capacity) })
   }
+}
+
 
   const renderInput = (name, label, type, required, icon) => {
     return (

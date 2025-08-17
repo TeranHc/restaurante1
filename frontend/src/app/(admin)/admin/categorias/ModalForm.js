@@ -16,16 +16,25 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel }) {
     }
   }, [categoria])
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!name.trim()) {
-      alert('El nombre es obligatorio')
-      return
-    }
-    onSubmit({ name, description })
-    setName('')
-    setDescription('')
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!name.trim()) {
+    alert('El nombre es obligatorio');
+    return;
   }
+
+  const categoriaData = { name, description };
+
+  // Tomar token del localStorage y pasarlo al padre
+  const token = localStorage.getItem('token');
+
+  onSubmit(categoriaData, token);
+
+  setName('');
+  setDescription('');
+};
+
 
   return (
     <form

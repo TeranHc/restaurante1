@@ -18,10 +18,30 @@ export default function ReservaForm({ reserva, onSubmit, onCancel }) {
   // Cargar usuarios
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/users')
+      const token = localStorage.getItem('token')
+      if (!token) {
+        console.error('No hay token de autenticación')
+        return
+      }
+
+      const res = await fetch('http://localhost:3001/api/users', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (res.status === 403) {
+        console.error('Acceso denegado para cargar usuarios')
+        return
+      }
+
       if (res.ok) {
         const data = await res.json()
         setUsers(data)
+      } else {
+        console.error('Error al cargar usuarios:', res.status)
       }
     } catch (error) {
       console.error('Error cargando usuarios:', error)
@@ -31,10 +51,30 @@ export default function ReservaForm({ reserva, onSubmit, onCancel }) {
   // Cargar restaurantes
   const fetchRestaurants = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/restaurants')
+      const token = localStorage.getItem('token')
+      if (!token) {
+        console.error('No hay token de autenticación')
+        return
+      }
+
+      const res = await fetch('http://localhost:3001/api/restaurants', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (res.status === 403) {
+        console.error('Acceso denegado para cargar restaurantes')
+        return
+      }
+
       if (res.ok) {
         const data = await res.json()
         setRestaurants(data)
+      } else {
+        console.error('Error al cargar restaurantes:', res.status)
       }
     } catch (error) {
       console.error('Error cargando restaurantes:', error)
@@ -81,13 +121,25 @@ export default function ReservaForm({ reserva, onSubmit, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault()
 
+    // Validar que userId no esté vacío
+    if (!formData.userId) {
+      alert('Por favor selecciona un usuario')
+      return
+    }
+
+    if (!formData.restaurantId) {
+      alert('Por favor selecciona un restaurante')
+      return
+    }
+
     const formattedData = {
       ...formData,
-      userId: parseInt(formData.userId) || 0,
+      userId: formData.userId, // Mantener como string UUID
       restaurantId: parseInt(formData.restaurantId) || 0,
       partySize: parseInt(formData.partySize) || 0,
     }
 
+    console.log('FormData antes de enviar:', formattedData)
     onSubmit(formattedData)
   }
 

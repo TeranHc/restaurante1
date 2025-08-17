@@ -1,3 +1,4 @@
+//restaurantes/Modal.js
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -56,35 +57,51 @@ export default function ModalRestaurantes({ open, onClose }) {
     onClose()
   }
 
-  const handleFormSubmit = async (formData) => {
-    console.log('Enviando al backend:', formData)
-    setSaving(true)
-    setError(null)
-    try {
-      const url = editRestaurante
-        ? `${API_BASE_URL}/restaurants/${editRestaurante.id}`
-        : `${API_BASE_URL}/restaurants`
-      const method = editRestaurante ? 'PUT' : 'POST'
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Error guardando restaurante')
-      }
-      await fetchRestaurantes()
-      setEditRestaurante(null)
-      setShowForm(false)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setSaving(false)
-    }
+const handleFormSubmit = async (formData) => {
+  const token = localStorage.getItem('token'); // <-- obtiene JWT
+  if (!token) {
+    alert('No estás autenticado.');
+    return;
   }
+
+  setSaving(true);
+  setError(null);
+
+  try {
+    const url = editRestaurante
+      ? `http://localhost:3001/api/restaurants/${editRestaurante.id}`
+      : 'http://localhost:3001/api/restaurants';
+    const method = editRestaurante ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // <-- token aquí
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (res.status === 403) {
+      alert('Acceso denegado. Necesitas ser administrador.');
+      return;
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Error guardando restaurante');
+    }
+
+    await fetchRestaurantes();
+    setEditRestaurante(null);
+    setShowForm(false);
+  } catch (err) {
+    setError(err.message);
+    console.error(err);
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleEdit = (restaurante) => {
     setEditRestaurante(restaurante)
@@ -104,22 +121,50 @@ export default function ModalRestaurantes({ open, onClose }) {
     setError(null)
   }
 
-  const handleDelete = async (restaurante) => {
-    if (!confirm('¿Seguro que deseas eliminar este restaurante?')) return
-    setSaving(true)
-    setError(null)
-    try {
-      const res = await fetch(`${API_BASE_URL}/restaurants/${restaurante.id}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) throw new Error('Error al eliminar restaurante')
-      await fetchRestaurantes()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setSaving(false)
+// Para eliminar:
+const handleDelete = async (id) => {
+  if (!confirm('¿Seguro que deseas eliminar este restaurante?')) return;
+
+  setSaving(true);
+
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('No estás autenticado.');
+      setSaving(false);
+      return;
     }
+
+    const res = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.status === 403) {
+      alert('Acceso denegado. Necesitas ser administrador.');
+      setSaving(false);
+      return;
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Error eliminando restaurante');
+    }
+
+    await fetchRestaurantes(); // Recarga la lista
+    alert('Restaurante eliminado correctamente');
+
+  } catch (error) {
+    console.error(error);
+    alert('Error eliminando restaurante: ' + error.message);
+  } finally {
+    setSaving(false);
   }
+};
+
+
 
   // Ordenar columnas
   const handleSort = (column) => {
@@ -471,14 +516,15 @@ export default function ModalRestaurantes({ open, onClose }) {
                                     >
                                       <FaEdit className="text-xs" />
                                     </button>
-                                    <button
-                                      onClick={() => handleDelete(rest)}
-                                      className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
-                                      title="Eliminar"
-                                      disabled={saving}
-                                    >
-                                      <FaTrash className="text-xs" />
-                                    </button>
+                                      <button
+                                        onClick={() => handleDelete(rest.id)} // <-- Solo el ID
+                                        className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                                        title="Eliminar"
+                                        disabled={saving}
+                                      >
+                                        <FaTrash className="text-xs" />
+                                      </button>
+
                                   </div>
                                 </td>
                               </tr>

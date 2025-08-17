@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import FloatingParticles from './FloatingParticles' // ajusta la ruta si está en otra carpeta
 
-
 export default function BellaVistaLogin() {
   const router = useRouter()
 
@@ -16,7 +15,6 @@ export default function BellaVistaLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
-
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -64,7 +62,7 @@ export default function BellaVistaLogin() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Función para LOGIN (la que ya tenías)
+  // Función para LOGIN adaptada a Supabase Auth
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validateForm()) return
@@ -85,11 +83,22 @@ export default function BellaVistaLogin() {
         throw new Error(data.message || 'Error en el inicio de sesión')
       }
 
-      // Guardar datos en localStorage
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('userRole', data.user?.role || '')
+      // Guardar datos en localStorage - adaptado para la nueva estructura
+      localStorage.setItem('token', data.token) // Token de Supabase Auth
+      localStorage.setItem('refresh_token', data.refresh_token) // Refresh token de Supabase
+      localStorage.setItem('userRole', data.user?.role || 'CLIENT')
       localStorage.setItem('userName', data.user?.firstName || '')
+      localStorage.setItem('userLastName', data.user?.lastName || '')
       localStorage.setItem('userEmail', data.user?.email || '')
+      localStorage.setItem('userId', data.user?.id || '')
+      localStorage.setItem('userPhone', data.user?.phone || '')
+
+      console.log('Login exitoso:', {
+        userId: data.user?.id,
+        email: data.user?.email,
+        role: data.user?.role,
+        name: `${data.user?.firstName} ${data.user?.lastName}`.trim()
+      })
 
       // Redireccionar según el rol
       if (data.user?.role === 'ADMIN') {
@@ -99,36 +108,12 @@ export default function BellaVistaLogin() {
       }
 
     } catch (error) {
+      console.error('Error en login:', error)
       setErrors({ general: error.message || 'Error en el inicio de sesión' })
     } finally {
       setIsLoading(false)
     }
   }
-
-  // Función para REGISTRO (opcional, por si quieres agregar registro en el futuro)
-  const handleRegister = async (registerData) => {
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registerData)
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error en el registro')
-      }
-
-      console.log('Usuario registrado:', data)
-      
-    } catch (error) {
-      console.error('Error:', error.message)
-    }
-  }
-
 
   return (
     <div className=" mt-1 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
@@ -142,7 +127,6 @@ export default function BellaVistaLogin() {
 
       {/* Partículas flotantes - Reducidas en móvil */}
       <FloatingParticles isMobile={isMobile} />
-
 
       <div className="w-full max-w-sm sm:max-w-md relative z-10">
         {/* Logo y título - Optimizado para móvil */}
