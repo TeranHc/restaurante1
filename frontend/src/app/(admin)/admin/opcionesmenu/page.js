@@ -27,6 +27,25 @@ export default function OpcionesProductoPage() {
   // Crear objeto producto simple
   const producto = productId ? { id: productId, nombre: decodeURIComponent(productName || 'Producto') } : null
 
+  // Función para obtener el token de autenticación
+  const getAuthToken = () => {
+    return localStorage.getItem('token')
+  }
+
+  // Función para manejar errores de autenticación
+  const handleAuthError = (status) => {
+    if (status === 401) {
+      setError('Tu sesión ha expirado. Inicia sesión de nuevo.')
+      // Opcional: redirigir al login
+      // router.push('/login')
+      return true
+    } else if (status === 403) {
+      setError('Acceso denegado. Necesitas ser administrador.')
+      return true
+    }
+    return false
+  }
+
   useEffect(() => {
     if (!producto) {
       setError('No se especificó un producto válido')
@@ -36,11 +55,27 @@ export default function OpcionesProductoPage() {
 
     const fetchOpciones = async () => {
       try {
+        const token = getAuthToken()
+        if (!token) {
+          setError('No estás autenticado. Inicia sesión.')
+          setLoading(false)
+          return
+        }
+
         const url = `http://localhost:3001/api/product-options?product_id=${producto.id}`
         
-        const res = await fetch(url)
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
         
         if (!res.ok) {
+          if (handleAuthError(res.status)) {
+            setLoading(false)
+            return
+          }
+          
           if (res.status === 404) {
             setOpciones([])
             return
@@ -78,6 +113,12 @@ export default function OpcionesProductoPage() {
       return
     }
 
+    const token = getAuthToken()
+    if (!token) {
+      setError('No estás autenticado. Inicia sesión.')
+      return
+    }
+
     const parsedPrecio = parseFloat(nuevoPrecio || 0)
 
     setGuardando(true)
@@ -85,7 +126,8 @@ export default function OpcionesProductoPage() {
       const res = await fetch(`http://localhost:3001/api/product-options`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           product_id: producto.id,
@@ -96,6 +138,11 @@ export default function OpcionesProductoPage() {
       })
 
       if (!res.ok) {
+        if (handleAuthError(res.status)) {
+          setGuardando(false)
+          return
+        }
+        
         const errBody = await res.text()
         throw new Error(`Error ${res.status}: ${errBody || 'al guardar opción'}`)
       }
@@ -122,12 +169,24 @@ export default function OpcionesProductoPage() {
       return
     }
 
+    const token = getAuthToken()
+    if (!token) {
+      setError('No estás autenticado. Inicia sesión.')
+      return
+    }
+
     try {
       const res = await fetch(`http://localhost:3001/api/product-options/${opcionId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
 
       if (!res.ok) {
+        if (handleAuthError(res.status)) {
+          return
+        }
         throw new Error(`Error ${res.status}: al eliminar opción`)
       }
 
@@ -167,6 +226,12 @@ export default function OpcionesProductoPage() {
       return
     }
 
+    const token = getAuthToken()
+    if (!token) {
+      setError('No estás autenticado. Inicia sesión.')
+      return
+    }
+
     const parsedPrecio = parseFloat(nuevoPrecio || 0)
 
     setGuardando(true)
@@ -174,7 +239,8 @@ export default function OpcionesProductoPage() {
       const res = await fetch(`http://localhost:3001/api/product-options/${editando}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           option_type: nuevoTipo.trim(),
@@ -184,6 +250,11 @@ export default function OpcionesProductoPage() {
       })
 
       if (!res.ok) {
+        if (handleAuthError(res.status)) {
+          setGuardando(false)
+          return
+        }
+        
         const errBody = await res.text()
         throw new Error(`Error ${res.status}: ${errBody || 'al actualizar opción'}`)
       }
