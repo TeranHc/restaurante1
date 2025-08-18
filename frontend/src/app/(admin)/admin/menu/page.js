@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation' // Importar useRouter para navegación
+import { useRouter } from 'next/navigation' 
 import { Settings, Tags, Store, Search, X } from "lucide-react"; 
 import ModalProductos from '../productos/Modal'
 import ModalCategorias from '../categorias/Modal'
@@ -21,6 +21,7 @@ export default function MenuPage() {
   // Estados para filtros
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [showAvailableOnly, setShowAvailableOnly] = useState(true) // Nuevo estado para controlar disponibilidad
 
   const fetchProductos = async () => {
     setLoading(true)
@@ -28,8 +29,14 @@ export default function MenuPage() {
       const res = await fetch('http://localhost:3001/api/productos')
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
-      setProductos(data.filter(p => p.disponible))
+      
+      console.log('Productos recibidos:', data) // Debug
+      console.log('Cantidad de productos:', data?.length || 0) // Debug
+      
+      // NO filtrar aquí, dejar que el usuario elija con el toggle
+      setProductos(data || [])
     } catch (error) {
+      console.error('Error fetching productos:', error)
       alert(error.message)
     } finally {
       setLoading(false)
@@ -40,22 +47,30 @@ export default function MenuPage() {
     fetchProductos()
   }, [])
 
-  // Obtener categorías únicas
+  // Obtener categorías únicas de TODOS los productos (no solo disponibles)
   const categorias = [...new Set(productos.map(p => p.categories?.name).filter(Boolean))].sort()
 
-  // Filtrar productos
+  // Filtrar productos con lógica mejorada
   const filteredProductos = productos.filter(producto => {
-    const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        producto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+    // Filtro por disponibilidad
+    const matchesAvailability = showAvailableOnly ? producto.disponible : true
+    
+    // Filtro por búsqueda
+    const matchesSearch = searchTerm === '' || (
+      producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (producto.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    
+    // Filtro por categoría
     const matchesCategory = selectedCategory === '' || producto.categories?.name === selectedCategory
     
-    return matchesSearch && matchesCategory
+    return matchesAvailability && matchesSearch && matchesCategory
   })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       
-      {/* Header - Sin modificaciones */}
+      {/* Header */}
       <div className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -70,7 +85,7 @@ export default function MenuPage() {
               </p>
             </div>
 
-            {/* Enlaces de acción tipo navegación */}
+            {/* Enlaces de acción */}
             <div className="mt-4 md:mt-0 flex justify-center md:justify-end gap-6">
               <div
                 onClick={() => setModalOpenProductos(true)}
@@ -113,33 +128,58 @@ export default function MenuPage() {
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* Filtros Mejorados */}
       <div className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             
-            {/* Contador de productos y debug info */}
-            <div className="flex items-center gap-2">
+            {/* Info y debug */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <span className="text-sm text-slate-600">
-                {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''} encontrado{filteredProductos.length !== 1 ? 's' : ''}
+                {filteredProductos.length} de {productos.length} producto{productos.length !== 1 ? 's' : ''}
               </span>
               <span className="text-xs text-slate-400">
                 | {categorias.length} categoría{categorias.length !== 1 ? 's' : ''}
               </span>
-              {(searchTerm || selectedCategory) && (
+              {(searchTerm || selectedCategory || !showAvailableOnly) && (
                 <button
                   onClick={() => {
                     setSearchTerm('')
                     setSelectedCategory('')
+                    setShowAvailableOnly(true)
                   }}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline ml-2"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
                 >
                   Limpiar filtros
                 </button>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            {/* Controles de filtro */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              
+              {/* Toggle disponibilidad */}
+              <div className="flex items-center gap-2">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showAvailableOnly}
+                    onChange={(e) => setShowAvailableOnly(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    showAvailableOnly ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}>
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      showAvailableOnly ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </div>
+                  <span className="ml-2 text-sm text-slate-700">
+                    Solo disponibles
+                  </span>
+                </label>
+              </div>
+
               {/* Buscador */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
@@ -148,7 +188,7 @@ export default function MenuPage() {
                   placeholder="Buscar productos..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 pr-9 py-2 w-64 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900"
+                  className="pl-9 pr-9 py-2 w-full sm:w-64 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900"
                 />
                 {searchTerm && (
                   <button
@@ -166,11 +206,11 @@ export default function MenuPage() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-40 text-gray-900"
               >
-                <option value="">Seleccione categoria</option>
+                <option value="">Todas las categorías</option>
                 {categorias.length > 0 ? (
                   categorias.map(categoria => (
                     <option key={categoria} value={categoria}>
-                      {categoria} 
+                      {categoria}
                     </option>
                   ))
                 ) : (
@@ -182,7 +222,7 @@ export default function MenuPage() {
         </div>
       </div>
 
-      {/* Modales - Sin cambios */}
+      {/* Modales */}
       {modalOpenProductos && (
         <>
           <div
@@ -249,8 +289,7 @@ export default function MenuPage() {
         </>
       )}
 
-
-      {/* Content - Tarjetas mejoradas */}
+      {/* Content - Tarjetas */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex justify-center items-center py-16">
@@ -262,7 +301,7 @@ export default function MenuPage() {
         ) : filteredProductos.length === 0 ? (
           <div className="text-center py-16">
             <h3 className="text-xl font-semibold text-slate-700 mb-2">
-              {searchTerm || selectedCategory ? 'No se encontraron productos' : 'No hay productos disponibles'}
+              {searchTerm || selectedCategory || !showAvailableOnly ? 'No se encontraron productos' : 'No hay productos disponibles'}
             </h3>
             <p className="text-slate-500">
               {searchTerm || selectedCategory 
@@ -270,13 +309,18 @@ export default function MenuPage() {
                 : 'Vuelve pronto para ver nuestras últimas ofertas'
               }
             </p>
+            <div className="mt-4 text-sm text-slate-400">
+              Total de productos en base de datos: {productos.length}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProductos.map(prod => (
               <div
                 key={prod.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-slate-200 hover:border-slate-300 group"
+                className={`bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-slate-200 hover:border-slate-300 group ${
+                  !prod.disponible ? 'opacity-75' : ''
+                }`}
               >
                 <div className="relative h-48 overflow-hidden">
                   {prod.imagen ? (
@@ -293,12 +337,21 @@ export default function MenuPage() {
                     </div>
                   )}
                   
-                  {/* Badge de categoría - Siempre visible */}
+                  {/* Badge de categoría */}
                   <div className="absolute top-3 left-3">
                     <span className="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow-sm">
                       {prod.categories?.name || 'Sin categoría'}
                     </span>
                   </div>
+                  
+                  {/* Badge de disponibilidad */}
+                  {!prod.disponible && (
+                    <div className="absolute top-3 right-3">
+                      <span className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow-sm">
+                        No disponible
+                      </span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="p-5">
@@ -314,23 +367,27 @@ export default function MenuPage() {
                       <span className="text-2xl font-bold text-green-600">
                         ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}
                       </span>
-                      {prod.restaurante && (
+                      {prod.restaurants?.name && (
                         <span className="text-xs text-slate-500 mt-1">
-                          {prod.restaurante}
+                          {prod.restaurants.name}
                         </span>
                       )}
                     </div>
                     
-                    {/* redirecciona a la pagina de agregar opciones */}
                     <button
                       onClick={() =>
                         router.push(
                           `/admin/opcionesmenu?productId=${prod.id}&productName=${encodeURIComponent(
                             prod.nombre
-                          )}&basePrice=${prod.precio}&productImage=${encodeURIComponent(prod.imagen)}`
+                          )}&basePrice=${prod.precio}&productImage=${encodeURIComponent(prod.imagen || '')}`
                         )
                       }
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      disabled={!prod.disponible}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        prod.disponible 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
                     >
                       + Agregar
                     </button>
