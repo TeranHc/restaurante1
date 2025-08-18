@@ -2,20 +2,25 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useCart } from '../Carrito/CartContext' // Ajusta la ruta según tu estructura
 
 export default function ProductOptionsClientPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { addItem, toggleCart } = useCart() // Usar el hook del carrito
+  
   const productImage = searchParams.get('productImage')
   const productId = searchParams.get('productId')
   const productName = searchParams.get('productName')
   const basePrice = parseFloat(searchParams.get('basePrice') || '0')
+  const productDescription = searchParams.get('productDescription') // Agregar descripción si está disponible
   
   const [opciones, setOpciones] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [opcionesSeleccionadas, setOpcionesSeleccionadas] = useState({})
   const [precioTotal, setPrecioTotal] = useState(basePrice)
+  const [addingToCart, setAddingToCart] = useState(false) // Estado para el botón de agregar
 
   // Crear objeto producto simple
   const producto = productId ? { id: productId, nombre: decodeURIComponent(productName || 'Producto') } : null
@@ -82,6 +87,63 @@ export default function ProductOptionsClientPage() {
         [opcionId]: nuevaCantidad
       }
     })
+  }
+
+  // Función para agregar al carrito con opciones personalizadas
+  const handleAddToCart = async () => {
+    if (!producto) return
+
+    setAddingToCart(true)
+
+    try {
+      // Crear descripción con las opciones seleccionadas
+      let descripcionConOpciones = productDescription ? decodeURIComponent(productDescription) : ''
+      
+      const opcionesTexto = Object.entries(opcionesSeleccionadas)
+        .map(([opcionId, cantidad]) => {
+          const opcion = opciones.find(opt => opt.id.toString() === opcionId)
+          if (!opcion || cantidad === 0) return null
+          return `${opcion.option_type}: ${opcion.option_value} (x${cantidad})`
+        })
+        .filter(Boolean)
+
+      if (opcionesTexto.length > 0) {
+        descripcionConOpciones += (descripcionConOpciones ? ' • ' : '') + opcionesTexto.join(' • ')
+      }
+
+      // Crear el producto personalizado para agregar al carrito
+      const productoPersonalizado = {
+        id: `${producto.id}_${Date.now()}`, // ID único para evitar conflictos con personalizaciones
+        originalId: producto.id, // Mantener el ID original por si lo necesitas
+        nombre: producto.nombre,
+        descripcion: descripcionConOpciones,
+        precio: precioTotal, // Precio total con opciones incluidas
+        imagen: productImage,
+        opciones: opcionesSeleccionadas, // Guardar las opciones seleccionadas
+        esPersonalizado: true // Flag para identificar productos personalizados
+      }
+
+      // Agregar al carrito
+      addItem(productoPersonalizado)
+
+      // Mostrar feedback visual (opcional)
+      setTimeout(() => {
+        setAddingToCart(false)
+        // Opción 1: Abrir el carrito automáticamente
+        toggleCart()
+        
+        // Opción 2: Volver a la página anterior (comentar toggleCart() si usas esta)
+        // router.back()
+        
+        // Opción 3: Mostrar notificación de éxito (puedes implementar un toast)
+        console.log('Producto agregado al carrito exitosamente')
+      }, 800)
+
+    } catch (error) {
+      console.error('Error al agregar al carrito:', error)
+      setAddingToCart(false)
+      setError('Error al agregar el producto al carrito')
+    }
   }
 
   const volver = () => {
@@ -179,7 +241,7 @@ export default function ProductOptionsClientPage() {
                   <div className="aspect-square flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                       <svg className="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
                       </svg>
                       <p className="text-gray-400 text-xs">Sin imagen</p>
                     </div>
@@ -189,8 +251,8 @@ export default function ProductOptionsClientPage() {
 
               {/* Order Summary & Total Combined */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-5 py-4 border-b border-blue-200">
-                  <h3 className="font-semibold text-blue-700 text-sm">Resumen del Pedido</h3>
+                <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-5 py-4 border-b border-amber-200">
+                  <h3 className="font-semibold text-amber-700 text-sm">Resumen del Pedido</h3>
                 </div>
                 
                 <div className="p-5">
@@ -212,7 +274,7 @@ export default function ProductOptionsClientPage() {
                             <span className="text-gray-600 truncate mr-3">
                               {opcion.option_type} {opcion.option_value} × {cantidad}
                             </span>
-                            <span className="font-medium text-blue-600">+${subtotal.toFixed(2)}</span>
+                            <span className="font-medium text-amber-600">+${subtotal.toFixed(2)}</span>
                           </div>
                         )
                       })
@@ -227,20 +289,36 @@ export default function ProductOptionsClientPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-semibold text-gray-800">Total</span>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">${precioTotal.toFixed(2)}</div>
-                          {/* {precioTotal !== basePrice && (
+                          <div className="text-2xl font-bold text-amber-600">${precioTotal.toFixed(2)}</div>
+                          {precioTotal !== basePrice && (
                             <div className="text-xs text-gray-500 mt-1">
-                              Ahorro: +${(precioTotal - basePrice).toFixed(2)}
+                              Extras: +${(precioTotal - basePrice).toFixed(2)}
                             </div>
-                          )} */}
+                          )}
                         </div>
                       </div>
                     </div>
                     
-                    {/* Add to cart button placeholder */}
+                    {/* Add to cart button - ACTUALIZADO */}
                     <div className="pt-3">
-                      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-200 shadow-sm">
-                        Continuar con la compra
+                      <button 
+                        onClick={handleAddToCart}
+                        disabled={addingToCart}
+                        className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-sm flex items-center justify-center space-x-2"
+                      >
+                        {addingToCart ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Agregando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9" />
+                            </svg>
+                            <span>Agregar al Carrito</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -289,7 +367,7 @@ export default function ProductOptionsClientPage() {
                           return (
                             <div key={opcion.id} className={`rounded-xl p-4 border-2 transition-all duration-200 ${
                               isSelected 
-                                ? 'border-blue-200 bg-blue-50/50 shadow-sm' 
+                                ? 'border-amber-200 bg-amber-50/50 shadow-sm' 
                                 : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                             }`}>
                               <div className="flex items-center justify-between">
@@ -306,7 +384,7 @@ export default function ProductOptionsClientPage() {
                                       )}
                                     </div>
                                     {precioExtra > 0 && (
-                                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-xs font-medium whitespace-nowrap">
+                                      <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-xs font-medium whitespace-nowrap">
                                         +${precioExtra.toFixed(2)}
                                       </span>
                                     )}
@@ -330,7 +408,7 @@ export default function ProductOptionsClientPage() {
 
                                   <button
                                     onClick={() => cambiarCantidadOpcion(opcion.id, 1)}
-                                    className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all duration-200 shadow-sm"
+                                    className="w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center transition-all duration-200 shadow-sm"
                                   >
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.5v15m7.5-7.5h-15" />
