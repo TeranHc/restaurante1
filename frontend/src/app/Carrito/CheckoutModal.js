@@ -124,7 +124,7 @@ export default function CheckoutModal({ isOpen, onClose, onBack }) {
   // Mostrar mensaje de éxito
   if (orderSuccess) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
           <div className="mb-6">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -142,10 +142,10 @@ export default function CheckoutModal({ isOpen, onClose, onBack }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-white/20 p-2 rounded-lg">
@@ -155,7 +155,7 @@ export default function CheckoutModal({ isOpen, onClose, onBack }) {
               </div>
               <div>
                 <h2 className="text-xl font-bold">Finalizar Pedido</h2>
-                <p className="text-green-100 text-sm">{itemCount} producto{itemCount !== 1 ? 's' : ''} - ${total.toFixed(2)}</p>
+                <p className="text-amber-200 text-sm">{itemCount} producto{itemCount !== 1 ? 's' : ''} - ${total.toFixed(2)}</p>
               </div>
             </div>
             <button
@@ -225,7 +225,7 @@ export default function CheckoutModal({ isOpen, onClose, onBack }) {
                   onClick={() => handleInputChange('tipo_entrega', 'delivery')}
                   className={`p-3 border-2 rounded-lg font-medium transition ${
                     formData.tipo_entrega === 'delivery'
-                      ? 'border-green-500 bg-green-50 text-green-700'
+                      ? 'border-amber-500 bg-amber-50 text-black-700'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -241,7 +241,7 @@ export default function CheckoutModal({ isOpen, onClose, onBack }) {
                   onClick={() => handleInputChange('tipo_entrega', 'pickup')}
                   className={`p-3 border-2 rounded-lg font-medium transition ${
                     formData.tipo_entrega === 'pickup'
-                      ? 'border-green-500 bg-green-50 text-green-700'
+                      ? 'border-amber-500 bg-amber-50 text-black-700'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -344,7 +344,7 @@ export default function CheckoutModal({ isOpen, onClose, onBack }) {
             <button
               onClick={handleSubmit}
               disabled={isProcessing || isLoading || items.length === 0}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-3 rounded-lg font-medium transition flex items-center justify-center space-x-2"
+              className="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 text-white px-4 py-3 rounded-lg font-medium transition flex items-center justify-center space-x-2"
             >
               {(isProcessing || isLoading) ? (
                 <>

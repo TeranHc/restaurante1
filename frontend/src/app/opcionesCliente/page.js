@@ -214,7 +214,6 @@ if (forceAuthRecheck) {  // ❌ ESTE ES EL ERROR
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
@@ -237,8 +236,7 @@ if (forceAuthRecheck) {  // ❌ ESTE ES EL ERROR
             <div className="w-20"></div> {/* Spacer for balance */}
           </div>
         </div>
-      </nav>
-
+        
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col xl:flex-row gap-6">
