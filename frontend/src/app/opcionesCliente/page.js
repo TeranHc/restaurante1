@@ -7,8 +7,7 @@ import { useCart } from '../Carrito/CartContext' // Ajusta la ruta según tu est
 export default function ProductOptionsClientPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { addItem, toggleCart } = useCart() // Usar el hook del carrito
-  
+const { addItem, toggleCart, forceAuthRecheck, isAuthenticated, isLoading } = useCart() // ✅ Agregar todas las funciones que necesitas  
   const productImage = searchParams.get('productImage')
   const productId = searchParams.get('productId')
   const productName = searchParams.get('productName')
@@ -90,61 +89,81 @@ export default function ProductOptionsClientPage() {
   }
 
   // Función para agregar al carrito con opciones personalizadas
-  const handleAddToCart = async () => {
-    if (!producto) return
+const handleAddToCart = async () => {
+  if (!producto) return
 
-    setAddingToCart(true)
+// 🔥 DEBUGGING TEMPORAL - Agregar esto al inicio
+console.log('=== DEBUGGING HANDLE ADD TO CART ===')
 
-    try {
-      // Crear descripción con las opciones seleccionadas
-      let descripcionConOpciones = productDescription ? decodeURIComponent(productDescription) : ''
-      
-      const opcionesTexto = Object.entries(opcionesSeleccionadas)
-        .map(([opcionId, cantidad]) => {
-          const opcion = opciones.find(opt => opt.id.toString() === opcionId)
-          if (!opcion || cantidad === 0) return null
-          return `${opcion.option_type}: ${opcion.option_value} (x${cantidad})`
-        })
-        .filter(Boolean)
+// Verificar si tenemos acceso a forceAuthRecheck desde el contexto
+if (forceAuthRecheck) {  // ❌ ESTE ES EL ERROR
+  console.log('🔄 Forcing auth recheck before adding...')
+  forceAuthRecheck()
+  
+  // Esperar un momento para que se actualice el estado
+  await new Promise(resolve => setTimeout(resolve, 100))
+}
+  
+  // Verificar estado actual de autenticación
+  console.log('🔐 Current auth state:', { isAuthenticated, isLoading })
+  // 🔥 FIN DEBUGGING TEMPORAL
 
-      if (opcionesTexto.length > 0) {
-        descripcionConOpciones += (descripcionConOpciones ? ' • ' : '') + opcionesTexto.join(' • ')
-      }
+  setAddingToCart(true)
 
-      // Crear el producto personalizado para agregar al carrito
-      const productoPersonalizado = {
-        id: `${producto.id}_${Date.now()}`, // ID único para evitar conflictos con personalizaciones
-        originalId: producto.id, // Mantener el ID original por si lo necesitas
-        nombre: producto.nombre,
-        descripcion: descripcionConOpciones,
-        precio: precioTotal, // Precio total con opciones incluidas
-        imagen: productImage,
-        opciones: opcionesSeleccionadas, // Guardar las opciones seleccionadas
-        esPersonalizado: true // Flag para identificar productos personalizados
-      }
+  try {
+    // Crear descripción con las opciones seleccionadas
+    let descripcionConOpciones = productDescription ? decodeURIComponent(productDescription) : ''
+    
+    const opcionesTexto = Object.entries(opcionesSeleccionadas)
+      .map(([opcionId, cantidad]) => {
+        const opcion = opciones.find(opt => opt.id.toString() === opcionId)
+        if (!opcion || cantidad === 0) return null
+        return `${opcion.option_type}: ${opcion.option_value} (x${cantidad})`
+      })
+      .filter(Boolean)
 
-      // Agregar al carrito
-      addItem(productoPersonalizado)
-
-      // Mostrar feedback visual (opcional)
-      setTimeout(() => {
-        setAddingToCart(false)
-        // Opción 1: Abrir el carrito automáticamente
-        toggleCart()
-        
-        // Opción 2: Volver a la página anterior (comentar toggleCart() si usas esta)
-        // router.back()
-        
-        // Opción 3: Mostrar notificación de éxito (puedes implementar un toast)
-        console.log('Producto agregado al carrito exitosamente')
-      }, 800)
-
-    } catch (error) {
-      console.error('Error al agregar al carrito:', error)
-      setAddingToCart(false)
-      setError('Error al agregar el producto al carrito')
+    if (opcionesTexto.length > 0) {
+      descripcionConOpciones += (descripcionConOpciones ? ' • ' : '') + opcionesTexto.join(' • ')
     }
+
+    // Crear el producto personalizado para agregar al carrito
+    const productoPersonalizado = {
+      id: `${producto.id}_${Date.now()}`, // ID único para evitar conflictos con personalizaciones
+      originalId: producto.id, // Mantener el ID original por si lo necesitas
+      nombre: producto.nombre,
+      descripcion: descripcionConOpciones,
+      precio: precioTotal, // Precio total con opciones incluidas
+      imagen: productImage,
+      opciones: opcionesSeleccionadas, // Guardar las opciones seleccionadas
+      esPersonalizado: true // Flag para identificar productos personalizados
+    }
+
+    // 🔥 DEBUGGING TEMPORAL - Agregar antes de addItem
+    console.log('📦 About to call addItem with:', productoPersonalizado.nombre)
+    console.log('🔐 Auth state right before addItem:', { isAuthenticated, isLoading })
+
+    // Agregar al carrito
+    addItem(productoPersonalizado)
+
+    // Mostrar feedback visual (opcional)
+    setTimeout(() => {
+      setAddingToCart(false)
+      // Opción 1: Abrir el carrito automáticamente
+      toggleCart()
+      
+      // Opción 2: Volver a la página anterior (comentar toggleCart() si usas esta)
+      // router.back()
+      
+      // Opción 3: Mostrar notificación de éxito (puedes implementar un toast)
+      console.log('Producto agregado al carrito exitosamente')
+    }, 800)
+
+  } catch (error) {
+    console.error('Error al agregar al carrito:', error)
+    setAddingToCart(false)
+    setError('Error al agregar el producto al carrito')
   }
+}
 
   const volver = () => {
     router.back()
