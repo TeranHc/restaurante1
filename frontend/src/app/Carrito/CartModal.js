@@ -138,7 +138,6 @@ export default function CartModal() {
                 // Lista de productos
                 <div className="p-6">
                   <div className="max-h-96 overflow-y-auto space-y-4 mb-6">
-                    // DENTRO DEL MAP DE ITEMS EN CartModal - REEMPLAZAR EL DIV DEL PRODUCTO
 {items.map((item) => (
   <div key={item.cartItemId || item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
     {/* Imagen del producto */}

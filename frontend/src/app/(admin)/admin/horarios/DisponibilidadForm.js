@@ -200,7 +200,7 @@ export default function DisponibilidadForm({ slot, onSubmit, onCancel }) {
       }}>
         <p style={{ margin: '0' }}>
           💡 <strong>Tip:</strong> Las reservas actuales no pueden superar la capacidad máxima. 
-          Desmarcar "Disponible" bloquea este horario para nuevas reservas.
+          Desmarcar 'Disponible' bloquea este horario para nuevas reservas.
         </p>
       </div>
 
