@@ -1,9 +1,29 @@
+// app/reservas/ReservaCliente/page.js
+import { Suspense } from 'react';
+import ReservaClienteComponent from './ReservaClienteComponent';
+
+export default function ReservaClientePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando información...</p>
+        </div>
+      </div>
+    }>
+      <ReservaClienteComponent />
+    </Suspense>
+  );
+}
+
+// Create a new file: app/reservas/ReservaCliente/ReservaClienteComponent.js
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Clock, Users, MapPin, MessageSquare, ArrowRight, Check } from 'lucide-react';
 
-export default function ReservaCliente() {
+export default function ReservaClienteComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -240,7 +260,7 @@ export default function ReservaCliente() {
 
   // Modal de confirmación
   const ConfirmationModal = () => (
-    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <Check className="w-8 h-8 text-green-600" />
@@ -341,7 +361,7 @@ export default function ReservaCliente() {
               <input
                 type="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => handleDateChange(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
                 className={`w-full p-4 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg ${
                   errors.date ? 'border-red-300' : 'border-gray-300'
@@ -385,86 +405,84 @@ export default function ReservaCliente() {
                 Horarios disponibles
               </label>
               
-                          
-            {selectedRestaurant ? (
-              <div className="space-y-3">
-                {/* Información del restaurante */}
-                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 text-blue-600 mr-1" />
-                      <span className="font-medium text-blue-900">{selectedRestaurant.name}</span>
-                    </div>
-                    {selectedRestaurant?.opening_time && selectedRestaurant?.closing_time && (
-                      <div className="flex items-center text-blue-700">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>{selectedRestaurant.opening_time} - {selectedRestaurant.closing_time}</span>
+              {selectedRestaurant ? (
+                <div className="space-y-3">
+                  {/* Información del restaurante */}
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 text-blue-600 mr-1" />
+                        <span className="font-medium text-blue-900">{selectedRestaurant.name}</span>
                       </div>
-                    )}
+                      {selectedRestaurant?.opening_time && selectedRestaurant?.closing_time && (
+                        <div className="flex items-center text-blue-700">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{selectedRestaurant.opening_time} - {selectedRestaurant.closing_time}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {availableSlots.length > 0 ? (
+                    <div className="space-y-3">
+                      {/* Botones de horarios específicos si están disponibles */}
+                      {[...new Set(availableSlots.map(slot => slot.time))]
+                        .filter(Boolean).length > 0 ? (
+                        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                          {[...new Set(availableSlots.map(slot => slot.time))]
+                            .filter(Boolean)
+                            .sort()
+                            .map((time) => (
+                              <button
+                                key={time}
+                                type="button"
+                                onClick={() => setSelectedTime(time)}
+                                className={`p-3 rounded-lg border-2 transition-all ${
+                                  selectedTime === time
+                                    ? 'border-green-500 bg-green-50 text-green-700'
+                                    : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                                }`}
+                              >
+                                {time}
+                              </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    /* Campo de entrada manual de hora si no hay slots */
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ingresa una hora específica
+                      </label>
+                      <input
+                        type="time"
+                        value={selectedTime.includes(' - ') ? '' : selectedTime}
+                        onChange={(e) => setSelectedTime(e.target.value)}
+                        className={`w-full p-4 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg ${
+                          errors.time ? 'border-red-300' : 'border-gray-300'
+                        }`}
+                        min={selectedRestaurant?.opening_time}
+                        max={selectedRestaurant?.closing_time}
+                      />
+                      {selectedRestaurant?.opening_time && selectedRestaurant?.closing_time && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Horario permitido: {selectedRestaurant.opening_time} - {selectedRestaurant.closing_time}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
-
-{availableSlots.length > 0 ? (
-  <div className="space-y-3">
-    {/* Botones de horarios específicos si están disponibles */}
-    {[...new Set(availableSlots.map(slot => slot.time))]
-      .filter(Boolean).length > 0 ? (
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        {[...new Set(availableSlots.map(slot => slot.time))]
-          .filter(Boolean)
-          .sort()
-          .map((time) => (
-            <button
-              key={time}
-              type="button"
-              onClick={() => setSelectedTime(time)}
-              className={`p-3 rounded-lg border-2 transition-all ${
-                selectedTime === time
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
-              }`}
-            >
-              {time}
-            </button>
-        ))}
-      </div>
-    ) : null}
-  </div>
-) : (
-  /* Campo de entrada manual de hora si no hay slots */
-  <div className="mt-4">
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Ingresa una hora específica
-    </label>
-    <input
-      type="time"
-      value={selectedTime.includes(' - ') ? '' : selectedTime}
-      onChange={(e) => setSelectedTime(e.target.value)}
-      className={`w-full p-4 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg ${
-        errors.time ? 'border-red-300' : 'border-gray-300'
-      }`}
-      min={selectedRestaurant?.opening_time}
-      max={selectedRestaurant?.closing_time}
-    />
-    {selectedRestaurant?.opening_time && selectedRestaurant?.closing_time && (
-      <p className="text-xs text-gray-500 mt-1">
-        Horario permitido: {selectedRestaurant.opening_time} - {selectedRestaurant.closing_time}
-      </p>
-    )}
-  </div>
-)}
-
-              </div>
               ) : (
-              /* Mensaje cuando no hay restaurante seleccionado */
-              <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
-                <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="font-medium">Selecciona un restaurante primero</p>
-                <p className="text-sm mt-1">
-                  Necesitas seleccionar un restaurante para ver los horarios disponibles
-                </p>
-              </div>
-            )}
+                /* Mensaje cuando no hay restaurante seleccionado */
+                <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+                  <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="font-medium">Selecciona un restaurante primero</p>
+                  <p className="text-sm mt-1">
+                    Necesitas seleccionar un restaurante para ver los horarios disponibles
+                  </p>
+                </div>
+              )}
               
               {errors.time && (
                 <p className="mt-2 text-sm text-red-600">{errors.time}</p>
