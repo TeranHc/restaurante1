@@ -34,7 +34,8 @@ const { addItem, toggleCart, forceAuthRecheck, isAuthenticated, isLoading } = us
 
     const fetchOpciones = async () => {
       try {
-        const url = `http://localhost:3001/api/product-options?product_id=${producto.id}`
+        // ✅ CORREGIDO: Usar variable de entorno
+        const url = `${process.env.NEXT_PUBLIC_API_URL}/product-options?product_id=${producto.id}`
         const res = await fetch(url)
         
         if (!res.ok) {
@@ -303,7 +304,7 @@ const handleAddToCart = async () => {
                 {productImage ? (
                   <div className="aspect-square flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-white">
                     <img
-                      src={productImage.startsWith('http') ? productImage : `http://localhost:3001${productImage}`}
+                      src={productImage.startsWith('http') ? productImage : `${process.env.NEXT_PUBLIC_API_URL}${productImage}`}
                       alt={producto.nombre}
                       className="max-w-full max-h-full object-contain drop-shadow-sm rounded-lg"
                     />
