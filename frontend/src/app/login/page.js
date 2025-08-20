@@ -77,10 +77,12 @@ const handleGoogleLogin = async () => {
     console.log('Iniciando Google OAuth...');
     
     // Llamar a tu backend para obtener la URL de autenticación
-    const response = await fetch(`${API_URL}/auth/google`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+})
+
 
 
     const data = await response.json();
@@ -111,13 +113,13 @@ const handleGoogleLogin = async () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+})
+
+
 
       const data = await response.json()
 
