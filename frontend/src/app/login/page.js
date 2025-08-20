@@ -340,6 +340,8 @@ export default function BellaVistaLogin() {
             </button>
           </form>
 
+
+
           {/* Registro */}
           <div className="text-center mt-4 sm:mt-6">
             <p className="text-gray-300 text-xs sm:text-sm">
