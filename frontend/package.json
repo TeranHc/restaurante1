@@ -14,10 +14,10 @@
     "bcrypt": "^6.0.0",
     "lucide-react": "^0.525.0",
     "mysql2": "^3.14.2",
-    "next": "15.3.5",
+    "next": "^15.5.0",
     "node-cron": "^4.2.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
     "react-icons": "^5.5.0"
   },
   "devDependencies": {
