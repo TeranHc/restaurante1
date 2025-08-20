@@ -1,11 +1,6 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import FloatingParticles from './FloatingParticles'
-import { createClient } from '@supabase/supabase-js'
-
 
 export default function BellaVistaLogin() {
   const router = useRouter()
@@ -18,12 +13,6 @@ export default function BellaVistaLogin() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -70,102 +59,98 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-// Función actualizada para el handleGoogleLogin en tu componente existente
-const handleGoogleLogin = async () => {
-  setIsGoogleLoading(true);
-  try {
-    console.log('Iniciando Google OAuth...');
-    
-    // Llamar a tu backend para obtener la URL de autenticación
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(formData)
-})
-
-
-
-    const data = await response.json();
-    console.log('Respuesta del backend:', data);
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || 'Error al obtener URL de autenticación');
-    }
-
-    console.log('Redirigiendo a Google OAuth:', data.authUrl);
-    
-    // Redirigir a Google OAuth
-    window.location.href = data.authUrl;
-
-  } catch (err) {
-    console.error('Error iniciando sesión con Google:', err);
-    setErrors({ 
-      general: `Error al iniciar sesión con Google: ${err.message}` 
-    });
-    setIsGoogleLoading(false);
-  }
-  // No pongas setIsGoogleLoading(false) aquí porque la página se redirigirá
-};
-  // Login tradicional con email/password - Usando tu backend
-const handleSubmit = async (e) => {
-  e.preventDefault()
-  if (!validateForm()) return
-  setIsLoading(true)
-
-  try {
-    // Usando la variable de entorno que ya incluye /api
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(formData),
-})
-
-    // Intentar parsear JSON solo si la respuesta es correcta
-    let data
+  // FUNCIÓN CORREGIDA PARA GOOGLE OAUTH
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
     try {
-      data = await response.json()
-    } catch (jsonError) {
-      throw new Error(`Respuesta inválida del servidor: ${response.status} ${response.statusText}`)
+      console.log('Iniciando Google OAuth...');
+      
+      // CORRECCIÓN: Hacer GET request (no POST) y no enviar formData
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/google`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+        // NO enviar body con formData
+      });
+
+      const data = await response.json();
+      console.log('Respuesta del backend:', data);
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Error al obtener URL de autenticación');
+      }
+
+      console.log('Redirigiendo a Google OAuth:', data.authUrl);
+      
+      // Redirigir a Google OAuth
+      window.location.href = data.authUrl;
+
+    } catch (err) {
+      console.error('Error iniciando sesión con Google:', err);
+      setErrors({ 
+        general: `Error al iniciar sesión con Google: ${err.message}` 
+      });
+      setIsGoogleLoading(false);
     }
+    // No pongas setIsGoogleLoading(false) aquí porque la página se redirigirá
+  };
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Error en el inicio de sesión')
+  // Login tradicional con email/password - Sin cambios
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!validateForm()) return
+    setIsLoading(true)
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        throw new Error(`Respuesta inválida del servidor: ${response.status} ${response.statusText}`)
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error en el inicio de sesión')
+      }
+
+      // Guardar datos en localStorage
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('refresh_token', data.refresh_token)
+      localStorage.setItem('userRole', data.user?.role || 'CLIENT')
+      localStorage.setItem('userName', data.user?.firstName || '')
+      localStorage.setItem('userLastName', data.user?.lastName || '')
+      localStorage.setItem('userEmail', data.user?.email || '')
+      localStorage.setItem('userId', data.user?.id || '')
+      localStorage.setItem('userPhone', data.user?.phone || '')
+
+      console.log('Login exitoso:', {
+        userId: data.user?.id,
+        email: data.user?.email,
+        role: data.user?.role,
+        name: `${data.user?.firstName} ${data.user?.lastName}`.trim()
+      })
+
+      // Redireccionar según rol
+      if (data.user?.role === 'ADMIN') {
+        window.location.href = '/admin/dashboard'
+      } else {
+        window.location.href = '/'
+      }
+
+    } catch (error) {
+      console.error('Error en login:', error)
+      setErrors({ general: error.message || 'Error en el inicio de sesión' })
+    } finally {
+      setIsLoading(false)
     }
-
-    // Guardar datos en localStorage
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('refresh_token', data.refresh_token)
-    localStorage.setItem('userRole', data.user?.role || 'CLIENT')
-    localStorage.setItem('userName', data.user?.firstName || '')
-    localStorage.setItem('userLastName', data.user?.lastName || '')
-    localStorage.setItem('userEmail', data.user?.email || '')
-    localStorage.setItem('userId', data.user?.id || '')
-    localStorage.setItem('userPhone', data.user?.phone || '')
-
-    console.log('Login exitoso:', {
-      userId: data.user?.id,
-      email: data.user?.email,
-      role: data.user?.role,
-      name: `${data.user?.firstName} ${data.user?.lastName}`.trim()
-    })
-
-    // Redireccionar según rol
-    if (data.user?.role === 'ADMIN') {
-      window.location.href = '/admin/dashboard'
-    } else {
-      window.location.href = '/'
-    }
-
-  } catch (error) {
-    console.error('Error en login:', error)
-    setErrors({ general: error.message || 'Error en el inicio de sesión' })
-  } finally {
-    setIsLoading(false)
   }
-}
-
 
   return (
     <div className="mt-1 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
@@ -176,9 +161,6 @@ const handleSubmit = async (e) => {
         <div className="absolute bottom-10 left-10 sm:bottom-20 sm:left-20 w-24 h-24 sm:w-48 sm:h-48 bg-amber-400/10 rounded-full blur-2xl"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-96 sm:h-96 bg-amber-300/5 rounded-full blur-3xl"></div>
       </div>
-
-      {/* Partículas flotantes - Reducidas en móvil */}
-      <FloatingParticles isMobile={isMobile} />
 
       <div className="w-full max-w-sm sm:max-w-md relative z-10">
         {/* Logo y título - Optimizado para móvil */}
