@@ -11,15 +11,12 @@ export default function LoginButton({ isMobile = false }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  // ✅ CORREGIDO: Usar variable de entorno
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
-  // Verificar si el usuario está autenticado al cargar el componente
   useEffect(() => {
     checkAuthStatus()
   }, [])
 
-  // Cerrar dropdown al hacer click fuera
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -42,10 +39,9 @@ export default function LoginButton({ isMobile = false }) {
     }
 
     try {
-      console.log('🔍 API_URL:', API_URL) // Debug
-      console.log('🔑 Verificando token:', token) // Debug
+      console.log('API_URL:', API_URL)
+      console.log('Verificando token:', token)
       
-      // ✅ CORREGIDO: Usar variable de entorno en lugar de hardcodear localhost
       const response = await fetch(`${API_URL}/auth/verify-token`, {
         method: 'GET',
         headers: {
@@ -54,42 +50,36 @@ export default function LoginButton({ isMobile = false }) {
         }
       })
 
-      console.log('📡 Response status:', response.status) // Debug
+      console.log('Response status:', response.status)
 
       if (response.ok) {
         const result = await response.json()
-        console.log('📥 Response data:', result) // Debug
+        console.log('Response data:', result)
         
-        // Ajustar según la estructura de tu respuesta
-        // Puede ser result.user, result.data, o directamente result
         const userData = result.user || result.data || result
         
-        console.log('👤 User data:', userData) // Debug
+        console.log('User data:', userData)
         setUser(userData)
         
-        // Actualizar localStorage con los datos más recientes
         if (userData) {
           localStorage.setItem('userRole', userData.role || '')
           localStorage.setItem('userName', userData.firstName || userData.name || '')
           localStorage.setItem('userEmail', userData.email || '')
         }
       } else {
-        console.error('❌ Token verification failed:', response.status)
-        // Token inválido, limpiar localStorage
+        console.error('Token verification failed:', response.status)
         clearLocalStorage()
       }
     } catch (error) {
-      console.error('❌ Error verificando token:', error)
-      // En caso de error de red, usar datos de localStorage como fallback
+      console.error('Error verificando token:', error)
       const fallbackUser = {
         firstName: localStorage.getItem('userName'),
         email: localStorage.getItem('userEmail'),
         role: localStorage.getItem('userRole')
       }
       
-      // Solo usar fallback si tenemos al menos el nombre
       if (fallbackUser.firstName) {
-        console.log('🔄 Using fallback user data:', fallbackUser)
+        console.log('Using fallback user data:', fallbackUser)
         setUser(fallbackUser)
       } else {
         clearLocalStorage()
@@ -113,11 +103,6 @@ export default function LoginButton({ isMobile = false }) {
     window.location.href = '/'
   }
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen)
-  }
-
-  // Mostrar loading mientras verifica el token
   if (isLoading) {
     return (
       <div className="flex items-center">
@@ -128,7 +113,6 @@ export default function LoginButton({ isMobile = false }) {
     )
   }
 
-  // Si NO hay usuario autenticado, mostrar botón de login
   if (!user) {
     return (
       <Link
@@ -139,12 +123,10 @@ export default function LoginButton({ isMobile = false }) {
             : 'bg-gradient-to-r from-slate-700/60 to-slate-600/60 hover:from-slate-600/80 hover:to-slate-500/80 text-white px-6 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 flex items-center space-x-2 border border-white/20 hover:border-white/40 shadow-lg hover:shadow-xl backdrop-blur-sm hover:scale-105'
         }`}
       >
-        {/* Icono de usuario */}
         <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
         <span>Iniciar Sesión</span>
-        {/* Flecha para desktop */}
         {!isMobile && (
           <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -154,9 +136,7 @@ export default function LoginButton({ isMobile = false }) {
     )
   }
 
-  // Si hay usuario autenticado, mostrar dropdown
   if (isMobile) {
-    // Versión móvil - sin dropdown, solo opciones listadas
     return (
       <div className="w-full space-y-2 border-t border-white/10 pt-2">
         <div className="text-center py-2">
@@ -187,7 +167,6 @@ export default function LoginButton({ isMobile = false }) {
     )
   }
 
-  // Si hay usuario autenticado, mostrar dropdown con su nombre
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -212,7 +191,6 @@ export default function LoginButton({ isMobile = false }) {
         </svg>
       </button>
 
-      {/* Dropdown Menu - Mejorado para funcionar en fondos claros y oscuros */}
       {isDropdownOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-gray-800 backdrop-blur-xl border border-gray-700/50 rounded-lg shadow-2xl z-50 ring-1 ring-black/5">
           <div className="p-4 border-b border-gray-700/50">
@@ -245,7 +223,7 @@ export default function LoginButton({ isMobile = false }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               <span className="text-sm">Cerrar Sesión</span>
-            </Link>
+            </button>
           </div>
         </div>
       )}
