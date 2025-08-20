@@ -46,23 +46,13 @@ export default function VistaCliente({ opciones = [], basePrice = 0, productImag
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      {/* Imagen producto arriba */}
-      {/* {productImage && (
-        <div className="mb-4 rounded overflow-hidden shadow-md max-h-48">
-          <img
-            src={productImage.startsWith('http') ? productImage : `http://localhost:3001${productImage}`}
-            alt="Imagen del producto"
-            className="w-full object-cover"
-            style={{ maxHeight: '192px' }}
-          />
-        </div>
-      )} */}
-      
-      {/* Imagen producto arriba */}
+      {/* Imagen del producto */}
       {productImage && (
         <div className="mb-4 rounded overflow-hidden shadow-md">
           <img
-            src={productImage.startsWith('http') ? productImage : `http://localhost:3001${productImage}`}
+            src={productImage.startsWith('http') 
+              ? productImage 
+              : `${process.env.NEXT_PUBLIC_API_URL}${productImage}`}
             alt="Imagen del producto"
             className="w-full object-contain"
             style={{ maxHeight: '192px' }}
@@ -148,6 +138,14 @@ export default function VistaCliente({ opciones = [], basePrice = 0, productImag
               </div>
             </div>
           )}
+
+          {/* Botón de agregar al carrito - opcional */}
+          <div className="border-t border-gray-200 pt-4">
+            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+              <span>🛒</span>
+              <span>Agregar al carrito - ${precioTotal.toFixed(2)}</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

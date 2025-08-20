@@ -24,7 +24,12 @@ export default function OpcionesProductoClient() {
 
   const producto = productId ? { id: productId, nombre: decodeURIComponent(productName || 'Producto') } : null
 
-  const getAuthToken = () => localStorage.getItem('token')
+  const getAuthToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token')
+    }
+    return null
+  }
 
   const handleAuthError = (status) => {
     if (status === 401) {
@@ -54,7 +59,8 @@ export default function OpcionesProductoClient() {
           return
         }
 
-        const url = `http://localhost:3001/api/product-options?product_id=${producto.id}`
+        // ✅ CORREGIDO: Usar variable de entorno
+        const url = `${process.env.NEXT_PUBLIC_API_URL}/product-options?product_id=${producto.id}`
         const res = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
@@ -110,7 +116,8 @@ export default function OpcionesProductoClient() {
     setGuardando(true)
 
     try {
-      const res = await fetch(`http://localhost:3001/api/product-options`, {
+      // ✅ CORREGIDO: Usar variable de entorno
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product-options`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +161,8 @@ export default function OpcionesProductoClient() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3001/api/product-options/${opcionId}`, {
+      // ✅ CORREGIDO: Usar variable de entorno
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product-options/${opcionId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
@@ -207,7 +215,8 @@ export default function OpcionesProductoClient() {
     setGuardando(true)
 
     try {
-      const res = await fetch(`http://localhost:3001/api/product-options/${editando}`, {
+      // ✅ CORREGIDO: Usar variable de entorno
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product-options/${editando}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -247,7 +256,7 @@ export default function OpcionesProductoClient() {
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
           <h2 className="text-xl font-bold mb-4">Error</h2>
           <p className="mb-6">No se especificó un producto válido</p>
-          <button onClick={volver} className="bg-blue-600 text-white px-6 py-2 rounded-lg">
+          <button onClick={volver} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
             Volver al Menú
           </button>
         </div>
@@ -259,17 +268,22 @@ export default function OpcionesProductoClient() {
     <div className="min-h-screen py-8 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Gestión de Opciones de Producto</h1>
             <p className="text-gray-600 mt-1">{producto.nombre}</p>
+            <p className="text-sm text-gray-500">Precio base: ${basePrice.toFixed(2)}</p>
           </div>
-          <button onClick={volver} className="bg-gray-600 text-white px-4 py-2 rounded-lg">
+          <button 
+            onClick={volver} 
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
             ← Volver
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Vista del Cliente */}
           {loading ? (
             <div className="bg-white rounded-lg shadow-sm p-6 text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -283,60 +297,101 @@ export default function OpcionesProductoClient() {
           <div className="space-y-6">
             {/* Formulario agregar/editar */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold mb-4">{editando ? 'Editar Opción' : 'Panel de Administrador'}</h2>
+              <h2 className="text-lg font-semibold mb-4 flex items-center">
+                {editando ? (
+                  <>
+                    <span className="text-orange-600 mr-2">✏️</span>
+                    Editar Opción
+                  </>
+                ) : (
+                  <>
+                    <span className="text-blue-600 mr-2">⚙️</span>
+                    Panel de Administrador
+                  </>
+                )}
+              </h2>
+              
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Tipo de opción *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Tipo de opción * 
+                    <span className="text-xs text-gray-500 ml-1">(ej: Tamaño, Color, Material)</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="ej: Tamaño, Color, Material"
+                    placeholder="Tamaño"
                     value={nuevoTipo}
                     onChange={e => setNuevoTipo(e.target.value)}
-                    className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Valor *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Valor * 
+                    <span className="text-xs text-gray-500 ml-1">(ej: Grande, Rojo, Algodón)</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="ej: Grande, Rojo, Algodón"
+                    placeholder="Grande"
                     value={nuevoValor}
                     onChange={e => setNuevoValor(e.target.value)}
-                    className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Precio adicional</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={nuevoPrecio}
-                    onChange={e => setNuevoPrecio(e.target.value)}
-                    className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Precio adicional 
+                    <span className="text-xs text-gray-500 ml-1">(opcional, deja en blanco si es gratis)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={nuevoPrecio}
+                      onChange={e => setNuevoPrecio(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
                 {editando ? (
                   <div className="flex space-x-3">
-                    <button onClick={cancelarEdicion} disabled={guardando} className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    <button 
+                      onClick={cancelarEdicion} 
+                      disabled={guardando} 
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                    >
                       Cancelar
                     </button>
-                    <button onClick={guardarEdicion} disabled={guardando} className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg">
+                    <button 
+                      onClick={guardarEdicion} 
+                      disabled={guardando} 
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                    >
                       {guardando ? 'Actualizando...' : 'Actualizar Opción'}
                     </button>
                   </div>
                 ) : (
-                  <button onClick={agregarOpcion} disabled={guardando} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg">
-                    {guardando ? 'Guardando...' : 'Agregar Opción'}
+                  <button 
+                    onClick={agregarOpcion} 
+                    disabled={guardando} 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {guardando ? 'Guardando...' : '+ Agregar Opción'}
                   </button>
                 )}
 
                 {error && (
-                  <div className={`p-3 rounded-lg text-sm ${error.startsWith('✓') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                  <div className={`p-3 rounded-lg text-sm ${
+                    error.startsWith('✓') 
+                      ? 'bg-green-50 text-green-800 border border-green-200' 
+                      : 'bg-red-50 text-red-800 border border-red-200'
+                  }`}>
                     {error}
                   </div>
                 )}
@@ -345,28 +400,57 @@ export default function OpcionesProductoClient() {
 
             {/* Lista de opciones existentes */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4">Opciones Existentes ({opciones.length})</h3>
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <span className="text-green-600 mr-2">📋</span>
+                Opciones Existentes ({opciones.length})
+              </h3>
+              
               {opciones.length === 0 ? (
-                <p className="text-center text-gray-500">No hay opciones agregadas</p>
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-4xl mb-2">📝</div>
+                  <p className="text-gray-500">No hay opciones agregadas</p>
+                  <p className="text-sm text-gray-400">Agrega la primera opción usando el formulario de arriba</p>
+                </div>
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {opciones.map(opt => (
-                    <div key={opt.id} className={`flex items-center justify-between p-3 border rounded-lg ${editando === opt.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                    <div key={opt.id} className={`flex items-center justify-between p-3 border rounded-lg transition-all ${
+                      editando === opt.id 
+                        ? 'border-orange-500 bg-orange-50' 
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">
-                          <span className="text-blue-600">{opt.option_type}:</span> {opt.option_value}
+                          <span className="text-blue-600 font-semibold">{opt.option_type}:</span> {opt.option_value}
                         </div>
                         {opt.extra_price && parseFloat(opt.extra_price) > 0 && (
-                          <div className="text-xs text-green-600">+${parseFloat(opt.extra_price).toFixed(2)}</div>
+                          <div className="text-xs text-green-600 font-medium">
+                            +${parseFloat(opt.extra_price).toFixed(2)}
+                          </div>
                         )}
                       </div>
+                      
                       <div className="flex items-center space-x-2">
                         {editando === opt.id ? (
-                          <span className="text-xs text-blue-600 font-medium">Editando...</span>
+                          <span className="text-xs text-orange-600 font-medium px-2 py-1 bg-orange-100 rounded">
+                            Editando...
+                          </span>
                         ) : (
                           <>
-                            <button onClick={() => iniciarEdicion(opt)} disabled={editando !== null} className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50">Editar</button>
-                            <button onClick={() => eliminarOpcion(opt.id)} disabled={editando !== null} className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50">Eliminar</button>
+                            <button 
+                              onClick={() => iniciarEdicion(opt)} 
+                              disabled={editando !== null} 
+                              className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50 disabled:opacity-50 transition-colors"
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button 
+                              onClick={() => eliminarOpcion(opt.id)} 
+                              disabled={editando !== null} 
+                              className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50 disabled:opacity-50 transition-colors"
+                            >
+                              🗑️ Eliminar
+                            </button>
                           </>
                         )}
                       </div>
