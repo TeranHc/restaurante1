@@ -19,7 +19,7 @@ export default function MenuPage() {
     setLoading(true)
     try {
       // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/productos`)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`)
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
       setProductos(data.filter(p => p.disponible))
