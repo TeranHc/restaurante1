@@ -11,6 +11,9 @@ export default function LoginButton({ isMobile = false }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
+  // ✅ CORREGIDO: Usar variable de entorno
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+
   // Verificar si el usuario está autenticado al cargar el componente
   useEffect(() => {
     checkAuthStatus()
@@ -39,10 +42,11 @@ export default function LoginButton({ isMobile = false }) {
     }
 
     try {
-      console.log('Verificando token:', token) // Debug
+      console.log('🔍 API_URL:', API_URL) // Debug
+      console.log('🔑 Verificando token:', token) // Debug
       
-      // Verificar el token con el backend
-      const response = await fetch('http://localhost:3001/api/auth/verify-token', {
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de hardcodear localhost
+      const response = await fetch(`${API_URL}/auth/verify-token`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -50,17 +54,17 @@ export default function LoginButton({ isMobile = false }) {
         }
       })
 
-      console.log('Response status:', response.status) // Debug
+      console.log('📡 Response status:', response.status) // Debug
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Response data:', result) // Debug
+        console.log('📥 Response data:', result) // Debug
         
         // Ajustar según la estructura de tu respuesta
         // Puede ser result.user, result.data, o directamente result
         const userData = result.user || result.data || result
         
-        console.log('User data:', userData) // Debug
+        console.log('👤 User data:', userData) // Debug
         setUser(userData)
         
         // Actualizar localStorage con los datos más recientes
@@ -70,12 +74,12 @@ export default function LoginButton({ isMobile = false }) {
           localStorage.setItem('userEmail', userData.email || '')
         }
       } else {
-        console.error('Token verification failed:', response.status)
+        console.error('❌ Token verification failed:', response.status)
         // Token inválido, limpiar localStorage
         clearLocalStorage()
       }
     } catch (error) {
-      console.error('Error verificando token:', error)
+      console.error('❌ Error verificando token:', error)
       // En caso de error de red, usar datos de localStorage como fallback
       const fallbackUser = {
         firstName: localStorage.getItem('userName'),
@@ -85,7 +89,7 @@ export default function LoginButton({ isMobile = false }) {
       
       // Solo usar fallback si tenemos al menos el nombre
       if (fallbackUser.firstName) {
-        console.log('Using fallback user data:', fallbackUser)
+        console.log('🔄 Using fallback user data:', fallbackUser)
         setUser(fallbackUser)
       } else {
         clearLocalStorage()
@@ -106,7 +110,7 @@ export default function LoginButton({ isMobile = false }) {
   const handleLogout = () => {
     clearLocalStorage()
     setIsDropdownOpen(false)
-  window.location.href = '/'
+    window.location.href = '/'
   }
 
   const toggleDropdown = () => {
@@ -183,7 +187,7 @@ export default function LoginButton({ isMobile = false }) {
     )
   }
 
-   // Si hay usuario autenticado, mostrar dropdown con su nombre
+  // Si hay usuario autenticado, mostrar dropdown con su nombre
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -233,8 +237,6 @@ export default function LoginButton({ isMobile = false }) {
               <span className="text-sm">Mi Perfil</span>
             </Link>
             
-
-            
             <button
               onClick={handleLogout}
               className="flex items-center space-x-3 px-3 py-2 text-gray-300 hover:bg-red-500/20 hover:text-red-400 transition-colors rounded-md w-full"
@@ -243,7 +245,7 @@ export default function LoginButton({ isMobile = false }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               <span className="text-sm">Cerrar Sesión</span>
-            </button>
+            </Link>
           </div>
         </div>
       )}
