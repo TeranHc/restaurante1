@@ -22,6 +22,7 @@ export default function UserProfilePage() {
   const [cancellingOrderId, setCancellingOrderId] = useState(null);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('reservations'); // 'reservations' | 'orders'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
   useEffect(() => {
     fetchUserData();
@@ -39,7 +40,7 @@ export default function UserProfilePage() {
       }
 
       // Verificar el token para obtener el usuario actual
-      const userVerificationRes = await fetch('http://localhost:3001/api/auth/verify', {
+      const userVerificationRes = await fetch(`${API_URL}/auth/verify`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -76,7 +77,7 @@ export default function UserProfilePage() {
 
   const fetchReservations = async (userId, token) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/reservations/user/${userId}`, {
+      const response = await fetch(`${API_URL}/reservations/user/${userId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -94,7 +95,7 @@ export default function UserProfilePage() {
 
   const fetchOrders = async (token) => {
     try {
-      const response = await fetch('http://localhost:3001/api/pedidos', {
+      const response = await fetch(`${API_URL}/pedidos`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
