@@ -105,13 +105,14 @@ export default function BellaVistaRegister() {
         newsletter: formData.newsletter
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      const response = await fetch('http://localhost:3001/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData)
       })
+
       const data = await response.json()
 
       if (!response.ok) {

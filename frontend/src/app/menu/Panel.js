@@ -6,19 +6,20 @@ export default function MenuPage() {
   const [productos, setProductos] = useState([])
   const [loading, setLoading] = useState(false)
 
-const fetchProductos = async () => {
-  setLoading(true)
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`)
-    if (!res.ok) throw new Error('Error al cargar productos')
-    const data = await res.json()
-    setProductos(data.filter(p => p.disponible))  // Mostrar solo disponibles
-  } catch (error) {
-    alert(error.message)
-  } finally {
-    setLoading(false)
+  const fetchProductos = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:3001/api/productos')
+      if (!res.ok) throw new Error('Error al cargar productos')
+      const data = await res.json()
+      setProductos(data.filter(p => p.disponible))  // Mostrar solo disponibles
+    } catch (error) {
+      alert(error.message)
+    } finally {
+      setLoading(false)
+    }
   }
-}
+
   useEffect(() => {
     fetchProductos()
   }, [])
@@ -73,7 +74,7 @@ const fetchProductos = async () => {
                     <img
                       src={prod.imagen?.startsWith('http') 
                         ? prod.imagen 
-                        : `${process.env.NEXT_PUBLIC_API_URL}${prod.imagen}`}
+                        : `http://localhost:3001${prod.imagen}`}
                       alt={prod.nombre}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

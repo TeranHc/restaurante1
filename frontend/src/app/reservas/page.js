@@ -105,7 +105,7 @@ export default function ReservasPage() {
 
       // 🔥 PRIMERO VERIFICAR QUE EL TOKEN ES VÁLIDO
       console.log('🔐 Verificando validez del token...');
-      const authVerifyRes = await authenticatedFetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`);
+      const authVerifyRes = await authenticatedFetch('http://localhost:3001/api/auth/verify');
       
       if (!authVerifyRes.ok) {
         throw new Error('Token inválido o expirado');
@@ -118,8 +118,8 @@ export default function ReservasPage() {
       console.log('📡 Cargando restaurantes y slots...');
       
       const results = await Promise.allSettled([
-        authenticatedFetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants`),
-        authenticatedFetch(`${process.env.NEXT_PUBLIC_API_URL}/available-slots`)
+        authenticatedFetch('http://localhost:3001/api/restaurants'),
+        authenticatedFetch('http://localhost:3001/api/available-slots')
       ]);
 
       const [restaurantsResult, slotsResult] = results;
@@ -169,7 +169,7 @@ export default function ReservasPage() {
           error.message.includes('Token') || error.message.includes('permisos')) {
         setAuthError(error.message);
       } else if (error.name === 'TypeError' || error.message.includes('fetch')) {
-        setNetworkError('Error de conexión. Verifica que el servidor esté ejecutándose.');
+        setNetworkError('Error de conexión. Verifica que el servidor esté ejecutándose en http://localhost:3001');
       } else {
         setNetworkError(`Error: ${error.message}`);
       }

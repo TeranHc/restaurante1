@@ -39,7 +39,7 @@ export default function UserProfilePage() {
       }
 
       // Verificar el token para obtener el usuario actual
-      const userVerificationRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+      const userVerificationRes = await fetch('http://localhost:3001/api/auth/verify', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -76,7 +76,7 @@ export default function UserProfilePage() {
 
   const fetchReservations = async (userId, token) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reservations/user/${userId}`, {
+      const response = await fetch(`http://localhost:3001/api/reservations/user/${userId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -94,7 +94,7 @@ export default function UserProfilePage() {
 
   const fetchOrders = async (token) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/pedidos`, {
+      const response = await fetch('http://localhost:3001/api/pedidos', {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -112,7 +112,7 @@ export default function UserProfilePage() {
 
   const handleError = (error) => {
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      setError('No se puede conectar al servidor. Verifica que el servidor esté ejecutándose.');
+      setError('No se puede conectar al servidor. Verifica que el servidor esté ejecutándose en http://localhost:3001');
     } else if (error.message.includes('401') || error.message.includes('Token inválido')) {
       setError('Sesión expirada. Por favor, inicia sesión nuevamente.');
       setTimeout(() => {
@@ -139,7 +139,7 @@ export default function UserProfilePage() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/reservations/${reservationId}/cancel`,
+        `http://localhost:3001/api/reservations/${reservationId}/cancel`,
         {
           method: 'PUT',
           headers: {
@@ -186,7 +186,7 @@ export default function UserProfilePage() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/pedidos/${orderId}/cancelar`,
+        `http://localhost:3001/api/pedidos/${orderId}/cancelar`,
         {
           method: 'PATCH',
           headers: {
