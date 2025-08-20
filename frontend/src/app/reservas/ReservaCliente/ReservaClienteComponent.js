@@ -26,6 +26,9 @@ export default function ReservaClienteComponent() {
   const [errors, setErrors] = useState({});
   const [availableSlots, setAvailableSlots] = useState([]);
 
+  // ✅ CAMBIADO: Usar variable de entorno en lugar de localhost
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -35,7 +38,8 @@ export default function ReservaClienteComponent() {
       // Obtener información del usuario logueado
       const token = localStorage.getItem('token');
       if (token) {
-        const userRes = await fetch('http://localhost:3001/api/auth/verify', {
+        // ✅ CAMBIADO: Usar variable de entorno
+        const userRes = await fetch(`${API_URL}/auth/verify`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (userRes.ok) {
@@ -46,7 +50,8 @@ export default function ReservaClienteComponent() {
 
       // Si hay restaurante preseleccionado, obtener su información
       if (restaurantParam) {
-        const restaurantRes = await fetch(`http://localhost:3001/api/restaurants/${restaurantParam}`);
+        // ✅ CAMBIADO: Usar variable de entorno
+        const restaurantRes = await fetch(`${API_URL}/restaurants/${restaurantParam}`);
         if (restaurantRes.ok) {
           const restaurantData = await restaurantRes.json();
           setSelectedRestaurant(restaurantData);
@@ -63,9 +68,10 @@ export default function ReservaClienteComponent() {
   // Obtener slots disponibles del API
   const fetchAvailableSlots = async (date, restaurantId) => {
     try {
+      // ✅ CAMBIADO: Usar variable de entorno
       const url = restaurantId 
-        ? `http://localhost:3001/api/available-slots?date=${date}&restaurant_id=${restaurantId}`
-        : `http://localhost:3001/api/available-slots?date=${date}`;
+        ? `${API_URL}/available-slots?date=${date}&restaurant_id=${restaurantId}`
+        : `${API_URL}/available-slots?date=${date}`;
       
       console.log('Fetching slots from:', url);
       
@@ -200,7 +206,8 @@ export default function ReservaClienteComponent() {
       console.log('Sending reservation data:', reservationData);
 
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/reservations', {
+      // ✅ CAMBIADO: Usar variable de entorno
+      const response = await fetch(`${API_URL}/reservations`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
