@@ -18,11 +18,13 @@ export default function MenuPage() {
   const fetchProductos = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/productos')
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/productos`)
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
       setProductos(data.filter(p => p.disponible))
     } catch (error) {
+      console.error('Error fetching productos:', error)
       alert(error.message)
     } finally {
       setLoading(false)
@@ -176,7 +178,7 @@ export default function MenuPage() {
                     <img
                       src={prod.imagen?.startsWith('http') 
                         ? prod.imagen 
-                        : `http://localhost:3001${prod.imagen}`}
+                        : `${process.env.NEXT_PUBLIC_API_URL}${prod.imagen}`}
                       alt={prod.nombre}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
