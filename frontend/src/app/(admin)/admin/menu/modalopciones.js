@@ -16,7 +16,8 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
     const fetchOpciones = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`http://localhost:3001/api/product-options?product_id=${producto.id}`)
+        // ✅ CORREGIDO: Usar variable de entorno
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product-options?product_id=${producto.id}`)
         if (!res.ok) {
           const errText = await res.text()
           throw new Error(`Error ${res.status}: ${errText || 'al cargar opciones del producto'}`)
@@ -43,7 +44,8 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
     const parsedPrecio = parseFloat(nuevoPrecio || 0)
 
     try {
-      const res = await fetch(`http://localhost:3001/api/product-options`, {
+      // ✅ CORREGIDO: Usar variable de entorno
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product-options`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -71,6 +73,24 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
     }
   }
 
+  const eliminarOpcion = async (opcionId) => {
+    try {
+      // ✅ CORREGIDO: Usar variable de entorno
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product-options/${opcionId}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        const errBody = await res.text()
+        throw new Error(`Error ${res.status}: ${errBody || 'al eliminar opción'}`)
+      }
+
+      setOpciones(prev => prev.filter(opt => opt.id !== opcionId))
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   return (
     <div className="p-4 max-w-md bg-white rounded shadow text-black">
       <h2 className="text-xl font-bold mb-4">Opciones de {producto.nombre}</h2>
@@ -82,11 +102,19 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
       ) : (
         <ul className="mb-4 space-y-2">
           {opciones.map(opt => (
-            <li key={opt.id} className="text-black">
-              <strong>{opt.option_type}:</strong> {opt.option_value}
-              {opt.extra_price && parseFloat(opt.extra_price) > 0 && (
-                <span> (+${parseFloat(opt.extra_price).toFixed(2)})</span>
-              )}
+            <li key={opt.id} className="text-black flex justify-between items-center bg-gray-50 p-2 rounded">
+              <div>
+                <strong>{opt.option_type}:</strong> {opt.option_value}
+                {opt.extra_price && parseFloat(opt.extra_price) > 0 && (
+                  <span className="text-green-600"> (+${parseFloat(opt.extra_price).toFixed(2)})</span>
+                )}
+              </div>
+              <button
+                onClick={() => eliminarOpcion(opt.id)}
+                className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+              >
+                Eliminar
+              </button>
             </li>
           ))}
         </ul>
@@ -98,14 +126,14 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
           placeholder="Tipo de opción (ej: Tamaño)"
           value={nuevoTipo}
           onChange={e => setNuevoTipo(e.target.value)}
-          className="w-full border px-3 py-2 rounded text-black"
+          className="w-full border px-3 py-2 rounded text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <input
           type="text"
           placeholder="Valor (ej: Grande)"
           value={nuevoValor}
           onChange={e => setNuevoValor(e.target.value)}
-          className="w-full border px-3 py-2 rounded text-black"
+          className="w-full border px-3 py-2 rounded text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <input
           type="number"
@@ -114,17 +142,17 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
           placeholder="Precio adicional (opcional)"
           value={nuevoPrecio}
           onChange={e => setNuevoPrecio(e.target.value)}
-          className="w-full border px-3 py-2 rounded text-black"
+          className="w-full border px-3 py-2 rounded text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <button
           onClick={agregarOpcion}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
         >
           Agregar Opción
         </button>
 
         {error && (
-          <div className="text-red-600 mt-2 text-sm">
+          <div className="text-red-600 mt-2 text-sm bg-red-50 p-2 rounded">
             {error}
           </div>
         )}
@@ -132,7 +160,7 @@ export default function ModalOpcionesProducto({ producto, onClose }) {
 
       <button
         onClick={onClose}
-        className="mt-6 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+        className="mt-6 w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
       >
         Cerrar
       </button>

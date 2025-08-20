@@ -7,7 +7,6 @@ import ModalProductos from '../productos/Modal'
 import ModalCategorias from '../categorias/Modal'
 import ModalRestaurantes from '../restaurantes/Modal'
 
-
 export default function MenuPage() {
   const [productos, setProductos] = useState([])
   const [loading, setLoading] = useState(false)
@@ -26,7 +25,8 @@ export default function MenuPage() {
   const fetchProductos = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/productos')
+      // ✅ CORREGIDO: Usar variable de entorno
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`)
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
       
@@ -227,7 +227,7 @@ export default function MenuPage() {
         <>
           <div
             onClick={() => setModalOpenProductos(false)}
-            className="fixed inset-0 bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
           />
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
@@ -249,7 +249,7 @@ export default function MenuPage() {
         <>
           <div
             onClick={() => setModalOpenCategorias(false)}
-            className="fixed inset-0 bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
           />
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
@@ -271,7 +271,7 @@ export default function MenuPage() {
         <>
           <div
             onClick={() => setModalOpenRestaurantes(false)}
-            className="fixed inset-0 bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
           />
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-4 w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto shadow-xl">
@@ -327,7 +327,7 @@ export default function MenuPage() {
                     <img
                       src={prod.imagen?.startsWith('http') 
                         ? prod.imagen 
-                        : `http://localhost:3001${prod.imagen}`}
+                        : `${process.env.NEXT_PUBLIC_API_URL}${prod.imagen}`}
                       alt={prod.nombre}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

@@ -1,9 +1,9 @@
-    'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import ModalProductos from '../productos/Modal'
 import ModalCategorias from '../categorias/Modal'
-import ModalRestaurantes from '../restaurantes/Modal'  // Asegúrate de que esta ruta sea correcta
+import ModalRestaurantes from '../restaurantes/Modal'
 
 export default function MenuPage() {
   const [productos, setProductos] = useState([])
@@ -15,11 +15,13 @@ export default function MenuPage() {
   const fetchProductos = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/productos')
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`)
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
       setProductos(data.filter(p => p.disponible))
     } catch (error) {
+      console.error('Error fetching productos:', error)
       alert(error.message)
     } finally {
       setLoading(false)
@@ -168,7 +170,9 @@ export default function MenuPage() {
                 <div className="relative h-48 overflow-hidden">
                   {prod.imagen ? (
                     <img
-                      src={`http://localhost:3001${prod.imagen}`}
+                      src={prod.imagen?.startsWith('http') 
+                        ? prod.imagen 
+                        : `${process.env.NEXT_PUBLIC_API_URL}${prod.imagen}`}
                       alt={prod.nombre}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -177,7 +181,17 @@ export default function MenuPage() {
                       <span className="text-slate-400 text-sm">Sin imagen</span>
                     </div>
                   )}
+                  
+                  {/* Badge de categoría - opcional */}
+                  {prod.categories?.name && (
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow-sm">
+                        {prod.categories.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
+                
                 <div className="p-5">
                   <h3 className="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
                     {prod.nombre}
@@ -185,10 +199,18 @@ export default function MenuPage() {
                   <p className="text-slate-600 text-sm mb-4 line-clamp-3">
                     {prod.descripcion}
                   </p>
+                  
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-green-600">
-                      ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-bold text-green-600">
+                        ${!isNaN(Number(prod.precio)) ? Number(prod.precio).toFixed(2) : '0.00'}
+                      </span>
+                      {prod.restaurants?.name && (
+                        <span className="text-xs text-slate-500 mt-1">
+                          {prod.restaurants.name}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
