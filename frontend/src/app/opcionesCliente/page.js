@@ -88,80 +88,128 @@ const { addItem, toggleCart, forceAuthRecheck, isAuthenticated, isLoading } = us
     })
   }
 
-  // Función para agregar al carrito con opciones personalizadas
+// Función para agregar al carrito con opciones personalizadas - VERSIÓN CORREGIDA
+// VERSIÓN CON DEBUGGING COMPLETO - REEMPLAZA handleAddToCart
 const handleAddToCart = async () => {
   if (!producto) return
 
-// 🔥 DEBUGGING TEMPORAL - Agregar esto al inicio
-console.log('=== DEBUGGING HANDLE ADD TO CART ===')
+  console.log('=== DEBUGGING COMPLETO ===')
+  console.log('🎯 Producto original:', {
+    id: producto.id,
+    nombre: producto.nombre,
+    type: typeof producto.id
+  })
+  
+  console.log('💰 Precios:', {
+    basePrice,
+    precioTotal,
+    basePriceType: typeof basePrice
+  })
 
-// Verificar si tenemos acceso a forceAuthRecheck desde el contexto
-if (forceAuthRecheck) {  // ❌ ESTE ES EL ERROR
-  console.log('🔄 Forcing auth recheck before adding...')
-  forceAuthRecheck()
-  
-  // Esperar un momento para que se actualice el estado
-  await new Promise(resolve => setTimeout(resolve, 100))
-}
-  
-  // Verificar estado actual de autenticación
-  console.log('🔐 Current auth state:', { isAuthenticated, isLoading })
-  // 🔥 FIN DEBUGGING TEMPORAL
+  console.log('📋 Opciones cargadas:', opciones.map(opt => ({
+    id: opt.id,
+    type: typeof opt.id,
+    product_id: opt.product_id,
+    option_type: opt.option_type,
+    option_value: opt.option_value,
+    extra_price: opt.extra_price
+  })))
+
+  console.log('✅ Opciones seleccionadas RAW:', opcionesSeleccionadas)
+
+  // Verificar si tenemos acceso a forceAuthRecheck desde el contexto
+  if (forceAuthRecheck) {
+    console.log('🔄 Forcing auth recheck before adding...')
+    forceAuthRecheck()
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
 
   setAddingToCart(true)
 
   try {
-    // Crear descripción con las opciones seleccionadas
-    let descripcionConOpciones = productDescription ? decodeURIComponent(productDescription) : ''
+    // Convertir opciones seleccionadas al formato que espera el backend
+    const selectedOptionIds = []
     
-    const opcionesTexto = Object.entries(opcionesSeleccionadas)
-      .map(([opcionId, cantidad]) => {
-        const opcion = opciones.find(opt => opt.id.toString() === opcionId)
-        if (!opcion || cantidad === 0) return null
-        return `${opcion.option_type}: ${opcion.option_value} (x${cantidad})`
-      })
-      .filter(Boolean)
+    Object.entries(opcionesSeleccionadas).forEach(([opcionId, cantidad]) => {
+      if (cantidad > 0) {
+        console.log(`🔍 Procesando opción ID: ${opcionId}, cantidad: ${cantidad}`)
+        
+        // Verificar que la opción existe en las opciones cargadas
+        const opcionExiste = opciones.find(opt => opt.id.toString() === opcionId.toString())
+        if (!opcionExiste) {
+          console.error(`❌ OPCIÓN NO ENCONTRADA: ID ${opcionId}`)
+          throw new Error(`Opción con ID ${opcionId} no encontrada`)
+        }
+        
+        console.log(`✅ Opción encontrada:`, opcionExiste)
+        
+        // Agregar el ID tantas veces como la cantidad
+        for (let i = 0; i < cantidad; i++) {
+          selectedOptionIds.push(parseInt(opcionId))
+        }
+      }
+    })
 
-    if (opcionesTexto.length > 0) {
-      descripcionConOpciones += (descripcionConOpciones ? ' • ' : '') + opcionesTexto.join(' • ')
-    }
+    console.log('🎯 Selected option IDs FINAL:', selectedOptionIds)
 
-    // Crear el producto personalizado para agregar al carrito
-    const productoPersonalizado = {
-      id: `${producto.id}_${Date.now()}`, // ID único para evitar conflictos con personalizaciones
-      originalId: producto.id, // Mantener el ID original por si lo necesitas
+    // Verificar que el product_id es correcto
+    const finalProductId = parseInt(producto.id)
+    console.log('🏷️ Final product ID:', finalProductId, 'type:', typeof finalProductId)
+
+    // Crear el producto para el carrito
+    const productoParaCarrito = {
+      id: finalProductId,
+      originalId: finalProductId,
       nombre: producto.nombre,
-      descripcion: descripcionConOpciones,
-      precio: precioTotal, // Precio total con opciones incluidas
-      imagen: productImage,
-      opciones: opcionesSeleccionadas, // Guardar las opciones seleccionadas
-      esPersonalizado: true // Flag para identificar productos personalizados
+      descripcion: productDescription ? decodeURIComponent(productDescription) : '',
+      precio: basePrice,
+      imagen: productImage
     }
 
-    // 🔥 DEBUGGING TEMPORAL - Agregar antes de addItem
-    console.log('📦 About to call addItem with:', productoPersonalizado.nombre)
-    console.log('🔐 Auth state right before addItem:', { isAuthenticated, isLoading })
+    console.log('📦 Producto para carrito:', productoParaCarrito)
+    console.log('📋 Opciones que se enviarán:', selectedOptionIds)
 
-    // Agregar al carrito
-    addItem(productoPersonalizado)
+    // DEBUGGING: Hacer una verificación manual de las opciones
+    console.log('🔍 VERIFICACIÓN MANUAL:')
+    console.log('- Product ID que se enviará:', finalProductId)
+    console.log('- Option IDs que se enviarán:', selectedOptionIds)
+    console.log('- Opciones disponibles para este producto:', opciones.filter(opt => 
+      opt.product_id.toString() === finalProductId.toString()
+    ))
 
-    // Mostrar feedback visual (opcional)
+    // Verificar que todas las opciones seleccionadas pertenecen al producto
+    const opcionesInvalidas = selectedOptionIds.filter(optionId => {
+      const opcionValida = opciones.find(opt => 
+        opt.id === optionId && 
+        opt.product_id.toString() === finalProductId.toString()
+      )
+      return !opcionValida
+    })
+
+    if (opcionesInvalidas.length > 0) {
+      console.error('❌ OPCIONES INVÁLIDAS DETECTADAS:', opcionesInvalidas)
+      throw new Error(`Opciones inválidas: ${opcionesInvalidas.join(', ')}`)
+    }
+
+    console.log('✅ Todas las opciones son válidas, procediendo...')
+
+    // Llamar a addItem
+    await addItem(productoParaCarrito, selectedOptionIds)
+
+    console.log('✅ Producto agregado exitosamente')
+
+    // Feedback visual
     setTimeout(() => {
       setAddingToCart(false)
-      // Opción 1: Abrir el carrito automáticamente
       toggleCart()
-      
-      // Opción 2: Volver a la página anterior (comentar toggleCart() si usas esta)
-      // router.back()
-      
-      // Opción 3: Mostrar notificación de éxito (puedes implementar un toast)
-      console.log('Producto agregado al carrito exitosamente')
+      console.log('🛒 Carrito abierto')
     }, 800)
 
   } catch (error) {
-    console.error('Error al agregar al carrito:', error)
+    console.error('❌ ERROR COMPLETO:', error)
+    console.error('❌ Stack trace:', error.stack)
     setAddingToCart(false)
-    setError('Error al agregar el producto al carrito')
+    setError('Error al agregar el producto al carrito: ' + error.message)
   }
 }
 

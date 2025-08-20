@@ -68,13 +68,20 @@ function cartReducer(state, action) {
       }
     }
 
-    case ACTIONS.REMOVE_ITEM: {
-      const updatedItems = state.items.filter(item => item.id !== action.payload)
-      return {
-        ...state,
-        items: updatedItems
-      }
-    }
+    // ✅ VERIFICAR QUE EL REDUCER ESTÉ CORRECTO (debería estar bien):
+case ACTIONS.REMOVE_ITEM: {
+  console.log('🔍 REDUCER - Removing item:', action.payload)
+  console.log('🔍 REDUCER - Current items before filter:', state.items.map(i => i.id))
+  
+  const updatedItems = state.items.filter(item => item.id !== action.payload)
+  
+  console.log('🔍 REDUCER - Items after filter:', updatedItems.map(i => i.id))
+  
+  return {
+    ...state,
+    items: updatedItems
+  }
+}
 
     case ACTIONS.UPDATE_QUANTITY: {
       const { id, quantity } = action.payload
@@ -213,9 +220,12 @@ export function CartProvider({ children }) {
   const [authLoading, setAuthLoading] = React.useState(true)
 
   // Calcular el total cada vez que cambian los items
-  const total = state.items.reduce((sum, item) => {
-    return sum + (item.precio * item.quantity)
-  }, 0)
+const total = state.items.reduce((sum, item) => {
+  // 🔥 USAR precio_total_item SI ESTÁ DISPONIBLE (incluye opciones y cantidad)
+  // O calcular con el precio unitario total (que ya incluye opciones)
+  const itemTotal = item.precio_total_item || (item.precio * item.quantity)
+  return sum + itemTotal
+}, 0)
 
   // Calcular la cantidad total de productos
   const itemCount = state.items.reduce((count, item) => count + item.quantity, 0)
@@ -236,102 +246,146 @@ export function CartProvider({ children }) {
     console.log('Auth changed from', wasAuthenticated, 'to', isAuthenticated)
   }
 
-  // Cargar carrito desde BD al iniciar
-  const loadCartFromDB = async () => {
-    if (!isAuthenticated || authLoading) {
-      console.log('⏸️ Skipping cart load - not authenticated or still loading')
-      return
-    }
-
-    try {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: true })
-      dispatch({ type: ACTIONS.SET_ERROR, payload: null })
-
-      console.log('🛒 Loading cart from database...')
-      const cartData = await apiRequest('/cart')
-      
-      // Transformar datos con estructura consistente
-      const transformedItems = cartData.map(item => {
-        console.log('🔍 Processing cart item:', item)
-        
-        return {
-          id: item.productos.id,              
-          cartItemId: item.id,                
-          nombre: item.productos.nombre,
-          descripcion: item.productos.descripcion,
-          precio: item.productos.precio,
-          imagen: item.productos.imagen,
-          quantity: item.quantity,
-          product_id: item.product_id,        
-          disponible: item.productos.disponible
-        }
-      })
-
-      console.log('🔍 Transformed items:', transformedItems)
-      dispatch({ type: ACTIONS.SET_ITEMS, payload: transformedItems })
-      console.log('✅ Cart loaded successfully:', transformedItems.length, 'items')
-    } catch (error) {
-      console.error('❌ Error loading cart:', error)
-      dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
-    } finally {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: false })
-    }
+// Cargar carrito desde BD al iniciar - VERSION MODIFICADA
+const loadCartFromDB = async () => {
+  if (!isAuthenticated || authLoading) {
+    console.log('⏸️ Skipping cart load - not authenticated or still loading')
+    return
   }
 
-  // Agregar producto al carrito (BD + Estado local)
-  const addItem = async (product) => {
-    console.log('=== DEBUG addItem ===')
-    console.log('🎯 Adding item to cart:', {
-      productId: product.id,
-      productName: product.nombre,
-      isAuthenticated,
-      authLoading
+  try {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: true })
+    dispatch({ type: ACTIONS.SET_ERROR, payload: null })
+
+    console.log('🛒 Loading cart from database...')
+    const cartData = await apiRequest('/cart')
+    
+    // 🔥 TRANSFORMAR DATOS CON OPCIONES Y PRECIOS CALCULADOS
+    const transformedItems = cartData.items ? cartData.items.map(item => {
+      console.log('🔍 Processing cart item with options:', item)
+      
+      return {
+        id: item.productos.id,              
+        cartItemId: item.id,                
+        nombre: item.productos.nombre,
+        descripcion: item.productos.descripcion,
+        
+        // 🔥 USAR PRECIOS CALCULADOS DEL BACKEND
+        precio_base: item.calculated_prices?.precio_base || item.productos.precio,
+        precio_opciones: item.calculated_prices?.precio_opciones || 0,
+        precio: item.calculated_prices?.precio_unitario_total || item.productos.precio, // Precio unitario total
+        precio_total_item: item.calculated_prices?.precio_total_item || (item.productos.precio * item.quantity),
+        
+        imagen: item.productos.imagen,
+        quantity: item.quantity,
+        product_id: item.product_id,        
+        disponible: item.productos.disponible,
+        
+        // 🔥 AGREGAR OPCIONES SELECCIONADAS
+        selected_options: item.cart_item_options ? item.cart_item_options.map(option => ({
+          id: option.product_options.id,
+          option_type: option.product_options.option_type,
+          option_value: option.product_options.option_value,
+          extra_price: option.product_options.extra_price
+        })) : []
+      }
+    }) : []
+
+    console.log('🔍 Transformed items with options:', transformedItems)
+    dispatch({ type: ACTIONS.SET_ITEMS, payload: transformedItems })
+    console.log('✅ Cart loaded successfully:', transformedItems.length, 'items')
+    
+  } catch (error) {
+    console.error('❌ Error loading cart:', error)
+    dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
+  } finally {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: false })
+  }
+}
+
+// Agregar producto al carrito (BD + Estado local) - VERSION MODIFICADA
+// VERSIÓN CON DEBUGGING COMPLETO - REEMPLAZA addItem en CartContext
+const addItem = async (product, selectedOptions = []) => {
+  console.log('=== DEBUG addItem CARTCONTEXT ===')
+  console.log('🎯 Adding item to cart:', {
+    productId: product.id,
+    productName: product.nombre,
+    selectedOptions: selectedOptions,
+    selectedOptionsType: typeof selectedOptions,
+    selectedOptionsLength: selectedOptions.length,
+    isAuthenticated,
+    authLoading
+  })
+
+  // Verificar cada opción individualmente
+  selectedOptions.forEach((optionId, index) => {
+    console.log(`🔍 Option ${index}:`, {
+      value: optionId,
+      type: typeof optionId,
+      isNumber: !isNaN(optionId),
+      parsed: parseInt(optionId)
+    })
+  })
+
+  const token = getAuthToken()
+  const userAuth = isUserAuthenticated()
+  
+  console.log('🔍 DETAILED AUTH CHECK:')
+  console.log('- getAuthToken():', token ? `${token.substring(0, 20)}...` : 'NULL')
+  console.log('- isUserAuthenticated():', userAuth)
+  console.log('- isAuthenticated state:', isAuthenticated)
+  console.log('- authLoading state:', authLoading)
+
+  if (!isAuthenticated) {
+    const errorMsg = 'Debes iniciar sesión para agregar productos al carrito'
+    console.error('❌', errorMsg)
+    dispatch({ type: ACTIONS.SET_ERROR, payload: errorMsg })
+    return
+  }
+
+  try {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: true })
+    dispatch({ type: ACTIONS.SET_ERROR, payload: null })
+
+    console.log('📦 Preparando request...')
+    
+    // Crear el body de la request
+    const requestBody = {
+      product_id: product.originalId || product.id,
+      quantity: 1
+    }
+    
+    // Solo agregar selected_options si hay opciones seleccionadas
+    if (selectedOptions && selectedOptions.length > 0) {
+      requestBody.selected_options = selectedOptions
+      console.log('📋 Options being sent:', selectedOptions)
+    }
+
+    console.log('🚀 REQUEST BODY FINAL:', JSON.stringify(requestBody, null, 2))
+
+    // Enviar a BD
+    const response = await apiRequest('/cart', {
+      method: 'POST',
+      body: JSON.stringify(requestBody)
     })
 
-    const token = getAuthToken()
-    const userAuth = isUserAuthenticated()
+    console.log('🔍 API Response:', response)
+
+    // Recargar carrito completo desde BD después de agregar
+    await loadCartFromDB()
     
-    console.log('🔍 DETAILED AUTH CHECK:')
-    console.log('- getAuthToken():', token ? `${token.substring(0, 20)}...` : 'NULL')
-    console.log('- isUserAuthenticated():', userAuth)
-    console.log('- isAuthenticated state:', isAuthenticated)
-    console.log('- authLoading state:', authLoading)
-
-    if (!isAuthenticated) {
-      const errorMsg = 'Debes iniciar sesión para agregar productos al carrito'
-      console.error('❌', errorMsg)
-      dispatch({ type: ACTIONS.SET_ERROR, payload: errorMsg })
-      return
-    }
-
-    try {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: true })
-      dispatch({ type: ACTIONS.SET_ERROR, payload: null })
-
-      console.log('📦 Sending to API...')
-      // Enviar a BD
-      const response = await apiRequest('/cart', {
-        method: 'POST',
-        body: JSON.stringify({
-          product_id: product.originalId || product.id,
-          quantity: 1
-        })
-      })
-
-      console.log('🔍 API Response:', response)
-
-      // Recargar carrito completo desde BD después de agregar
-      await loadCartFromDB()
-      
-      console.log(`✅ Producto "${product.nombre}" agregado al carrito`)
-    } catch (error) {
-      console.error('❌ Error adding to cart:', error)
-      dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
-    } finally {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: false })
-    }
+    console.log(`✅ Producto "${product.nombre}" agregado al carrito con opciones`)
+  } catch (error) {
+    console.error('❌ Error adding to cart:', error)
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack
+    })
+    dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
+  } finally {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: false })
   }
-
+}
   // Actualizar cantidad de producto
   const updateQuantity = async (productId, quantity) => {
     console.log('=== DEBUG updateQuantity ===')
@@ -388,41 +442,73 @@ export function CartProvider({ children }) {
     }
   }
 
-  // Eliminar producto del carrito
-  const removeItem = async (productId) => {
-    if (!isAuthenticated) return
+// ✅ SOLUCIÓN DEFINITIVA - Usa cartItemId en lugar de productId para identificar items únicos:
+const removeItem = async (cartItemIdOrProductId) => {
+  console.log('=== DEBUG removeItem ===')
+  console.log('🗑️ Removing item:', cartItemIdOrProductId)
+  console.log('🗑️ Current items:', state.items.map(item => ({
+    id: item.id, 
+    cartItemId: item.cartItemId, 
+    nombre: item.nombre
+  })))
 
-    try {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: true })
-      dispatch({ type: ACTIONS.SET_ERROR, payload: null })
-
-      const item = state.items.find(item => item.id === productId)
-      if (!item) {
-        console.error('Item not found for removal:', productId)
-        return
-      }
-
-      if (!item.cartItemId) {
-        console.error('Item missing cartItemId for removal:', item)
-        throw new Error('Item del carrito sin ID válido')
-      }
-
-      await apiRequest(`/cart/${item.cartItemId}`, {
-        method: 'DELETE'
-      })
-
-      // Actualizar estado local
-      dispatch({ type: ACTIONS.REMOVE_ITEM, payload: productId })
-      
-      console.log('✅ Product removed from cart')
-    } catch (error) {
-      console.error('Error removing from cart:', error)
-      dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
-      await loadCartFromDB()
-    } finally {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: false })
-    }
+  if (!isAuthenticated) {
+    console.log('❌ Not authenticated')
+    return
   }
+
+  try {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: true })
+    dispatch({ type: ACTIONS.SET_ERROR, payload: null })
+
+    // 🔥 BUSCAR ITEM TANTO POR cartItemId COMO POR productId (para compatibilidad)
+    let item = state.items.find(item => item.cartItemId === cartItemIdOrProductId)
+    
+    if (!item) {
+      // Fallback: buscar por productId (compatibilidad con código existente)
+      item = state.items.find(item => item.id === cartItemIdOrProductId)
+    }
+    
+    if (!item) {
+      console.error('❌ Item not found for removal:', cartItemIdOrProductId)
+      console.error('Available items:', state.items.map(i => ({id: i.id, cartItemId: i.cartItemId})))
+      return
+    }
+
+    if (!item.cartItemId) {
+      console.error('❌ Item missing cartItemId for removal:', item)
+      throw new Error('Item del carrito sin ID válido')
+    }
+
+    console.log(`🗑️ Deleting cart item ID: ${item.cartItemId} for product ID: ${item.id}`)
+
+    // Eliminar del backend usando cartItemId
+    await apiRequest(`/cart/${item.cartItemId}`, {
+      method: 'DELETE'
+    })
+
+    console.log('✅ Backend deletion successful')
+
+    // ✅ USAR FILTER DIRECTAMENTE CON cartItemId PARA MÁXIMA PRECISIÓN
+    const updatedItems = state.items.filter(existingItem => existingItem.cartItemId !== item.cartItemId)
+    
+    // Actualizar estado directamente en lugar de usar dispatch para evitar timing issues
+    dispatch({ type: ACTIONS.SET_ITEMS, payload: updatedItems })
+    
+    console.log('✅ Local state updated, item removed')
+    console.log(`🔍 Items reduced from ${state.items.length} to ${updatedItems.length}`)
+    
+  } catch (error) {
+    console.error('❌ Error removing from cart:', error)
+    dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
+    
+    // Solo recargar si hay un error real, no como comportamiento normal
+    console.log('🔄 Reloading cart due to error...')
+    await loadCartFromDB()
+  } finally {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: false })
+  }
+}
 
   // Limpiar todo el carrito
   const clearCart = async () => {

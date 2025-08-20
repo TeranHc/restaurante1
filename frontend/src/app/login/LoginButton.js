@@ -106,7 +106,7 @@ export default function LoginButton({ isMobile = false }) {
   const handleLogout = () => {
     clearLocalStorage()
     setIsDropdownOpen(false)
-    router.push('/')
+  window.location.href = '/'
   }
 
   const toggleDropdown = () => {

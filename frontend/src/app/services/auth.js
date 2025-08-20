@@ -34,6 +34,19 @@ const apiRequest = async (endpoint, options = {}) => {
   return data
 }
 
+// src/services/auth.js (añadir dentro de authService)
+resetPassword: async (email) => {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://tuapp.com/nueva-contrasena'
+  })
+
+  // No mostrar error de "usuario no encontrado" por seguridad
+  if (error && error.message !== 'Usuario no encontrado') throw error
+
+  return data
+}
+
+
 export const authService = {
   // Registrar usuario en Supabase
   register: async (userData) => {

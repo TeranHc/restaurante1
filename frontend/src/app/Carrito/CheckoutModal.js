@@ -200,7 +200,7 @@ export default function CheckoutModal({ isOpen, onClose, onBack }) {
             <h3 className="font-semibold text-gray-800 mb-3">Resumen del Pedido</h3>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center text-sm">
+  <div key={item.cartItemId || item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
                   <span className="text-gray-600">{item.quantity}x {item.nombre}</span>
                   <span className="font-medium">${(item.precio * item.quantity).toFixed(2)}</span>
                 </div>
