@@ -113,14 +113,18 @@ const handleSubmit = async (e) => {
   setIsLoading(true)
 
   try {
+    // Mostrar la URL que se está llamando
+    const loginUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`
+    console.log('URL de login:', loginUrl)
+
     // Usando la variable de entorno que ya incluye /api
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(formData),
-})
+    const response = await fetch(loginUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
 
     // Intentar parsear JSON solo si la respuesta es correcta
     let data
@@ -165,6 +169,7 @@ const handleSubmit = async (e) => {
     setIsLoading(false)
   }
 }
+
 
 
   return (
