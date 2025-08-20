@@ -1,7 +1,10 @@
-'use client'
-
+import { Suspense } from 'react'
 import OpcionesProductoClient from './OpcionesProductoClient'
 
 export default function Page() {
-  return <OpcionesProductoClient />
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <OpcionesProductoClient />
+    </Suspense>
+  )
 }
