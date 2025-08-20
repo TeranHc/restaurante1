@@ -1,5 +1,4 @@
 import './globals.css'
-
 import LayoutWithHeader from './Components/LayoutWithHeader'
 
 export const metadata = {
@@ -9,9 +8,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html >
-      <body className="overflow-x-hidden bg-gray-50 text-gray-900 font-sans flex flex-col min-h-screen">
-        <LayoutWithHeader>{children}</LayoutWithHeader>
+    <html lang="es">
+      <body className="overflow-x-hidden bg-gray-50 text-gray-900 font-sans flex-col min-h-screen">
+        <LayoutWithHeader>
+          {children}
+        </LayoutWithHeader>
       </body>
     </html>
   )
