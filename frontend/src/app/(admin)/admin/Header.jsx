@@ -45,8 +45,8 @@ export default function Header() {
               {[
                 // { href: '/', label: 'Inicio', icon: '🏠' },
                 { href: '/admin/menu', label: 'Carta', icon: '📖' },
-                { href: '/admin/reservas', label: 'Reservas', icon: '🗓️' },
-                { href: '/nosotros', label: 'Nosotros', icon: '👥' }
+                { href: '/admin/ReservationAdmin', label: 'Reservas', icon: '🗓️' },
+                { href: '/admin/ReservationAdmin', label: 'Nosotros', icon: '👥' }
               ].map((item) => (
                 <Link
                   key={item.href}
