@@ -115,12 +115,12 @@ const handleSubmit = async (e) => {
   try {
     // Usando la variable de entorno que ya incluye /api
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData)
-    })
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(formData),
+})
 
     // Intentar parsear JSON solo si la respuesta es correcta
     let data
