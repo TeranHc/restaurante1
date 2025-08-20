@@ -1,4 +1,5 @@
-// app/(admin)/admin/opcionesmenu/page.js
+'use client'
+
 import OpcionesProductoClient from './OpcionesProductoClient'
 
 export default function Page() {
