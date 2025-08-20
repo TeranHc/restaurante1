@@ -131,11 +131,21 @@ export default function LoginButton({ isMobile = false }) {
         href="/login"
         className={`${
           isMobile 
-            ? 'w-full bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-center text-sm font-medium transition'
-            : 'bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition'
+            ? 'w-full bg-gradient-to-r from-slate-700/80 to-slate-600/80 hover:from-slate-600/90 hover:to-slate-500/90 text-white px-6 py-4 rounded-xl text-center text-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-3 border border-white/20 hover:border-white/30 shadow-lg backdrop-blur-sm'
+            : 'bg-gradient-to-r from-slate-700/60 to-slate-600/60 hover:from-slate-600/80 hover:to-slate-500/80 text-white px-6 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 flex items-center space-x-2 border border-white/20 hover:border-white/40 shadow-lg hover:shadow-xl backdrop-blur-sm hover:scale-105'
         }`}
       >
-        Iniciar Sesión
+        {/* Icono de usuario */}
+        <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <span>Iniciar Sesión</span>
+        {/* Flecha para desktop */}
+        {!isMobile && (
+          <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        )}
       </Link>
     )
   }
