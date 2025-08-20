@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useCart } from '../Carrito/CartContext' // Ajusta la ruta según tu estructura
 
-export default function ProductOptionsClientPage() {
+// Componente que contiene toda la lógica con useSearchParams
+function ProductOptionsClientContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 const { addItem, toggleCart, forceAuthRecheck, isAuthenticated, isLoading } = useCart() // ✅ Agregar todas las funciones que necesitas  
@@ -494,5 +495,26 @@ const handleAddToCart = async () => {
         </div>
       </div>
     </div>
+  )
+}
+
+// Componente loading para el Suspense
+function ProductOptionsLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-400 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-500">Cargando página...</p>
+      </div>
+    </div>
+  )
+}
+
+// Componente principal que exportas - ENVUELVE TODO EN SUSPENSE
+export default function ProductOptionsClientPage() {
+  return (
+    <Suspense fallback={<ProductOptionsLoading />}>
+      <ProductOptionsClientContent />
+    </Suspense>
   )
 }
