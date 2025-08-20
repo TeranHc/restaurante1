@@ -83,7 +83,7 @@ export default function ReservasPage() {
     }
   };
 
-  // 🔥 FUNCIÓN fetchData MEJORADA con mejor manejo de errores
+  // 🔥 FUNCIÓN fetchData MEJORADA con mejor manejo de errores y variable de entorno
   const fetchData = async (isRetry = false) => {
     try {
       setLoading(true);
@@ -96,6 +96,7 @@ export default function ReservasPage() {
       
       console.log('🔄 Iniciando carga de datos de reservas...');
       console.log('🔄 Retry count:', retryCount);
+      console.log('🔄 API URL:', process.env.NEXT_PUBLIC_API_URL);
 
       // 🔥 VERIFICAR TOKEN ANTES DE HACER PETICIONES
       const token = getAuthToken();
@@ -103,9 +104,15 @@ export default function ReservasPage() {
         throw new Error('No se encontró token de autenticación');
       }
 
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error('NEXT_PUBLIC_API_URL no está configurada');
+      }
+
       // 🔥 PRIMERO VERIFICAR QUE EL TOKEN ES VÁLIDO
       console.log('🔐 Verificando validez del token...');
-      const authVerifyRes = await authenticatedFetch('http://localhost:3001/api/auth/verify');
+      const authVerifyRes = await authenticatedFetch(`${apiUrl}/auth/verify`);
       
       if (!authVerifyRes.ok) {
         throw new Error('Token inválido o expirado');
@@ -114,12 +121,12 @@ export default function ReservasPage() {
       const currentUser = await authVerifyRes.json();
       console.log('✅ Token válido para usuario:', currentUser.email || currentUser.id);
 
-      // 🔥 CARGAR DATOS CON MEJOR MANEJO DE ERRORES
+      // 🔥 CARGAR DATOS CON MEJOR MANEJO DE ERRORES - USANDO VARIABLE DE ENTORNO
       console.log('📡 Cargando restaurantes y slots...');
       
       const results = await Promise.allSettled([
-        authenticatedFetch('http://localhost:3001/api/restaurants'),
-        authenticatedFetch('http://localhost:3001/api/available-slots')
+        authenticatedFetch(`${apiUrl}/restaurants`),
+        authenticatedFetch(`${apiUrl}/available-slots`)
       ]);
 
       const [restaurantsResult, slotsResult] = results;
@@ -169,7 +176,7 @@ export default function ReservasPage() {
           error.message.includes('Token') || error.message.includes('permisos')) {
         setAuthError(error.message);
       } else if (error.name === 'TypeError' || error.message.includes('fetch')) {
-        setNetworkError('Error de conexión. Verifica que el servidor esté ejecutándose en http://localhost:3001');
+        setNetworkError(`Error de conexión. Verifica que el servidor esté ejecutándose en ${process.env.NEXT_PUBLIC_API_URL}`);
       } else {
         setNetworkError(`Error: ${error.message}`);
       }
@@ -401,6 +408,7 @@ export default function ReservasPage() {
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-8 p-4 bg-gray-100 rounded-lg text-xs text-gray-600">
             <h4 className="font-medium mb-2">Debug Info:</h4>
+            <p>• API URL: {process.env.NEXT_PUBLIC_API_URL}</p>
             <p>• Token presente: {getAuthToken() ? 'Sí' : 'No'}</p>
             <p>• Restaurantes cargados: {restaurants.length}</p>
             <p>• Slots cargados: {slots.length}</p>

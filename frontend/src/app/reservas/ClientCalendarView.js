@@ -9,7 +9,7 @@ const getAuthToken = () => {
          localStorage.getItem('adminToken');
 };
 
-// 🔥 FUNCIÓN PARA HACER PETICIONES AUTENTICADAS - Misma que en ReservationAdmin
+// ✅ CORREGIDO: FUNCIÓN PARA HACER PETICIONES AUTENTICADAS - Usando variable de entorno
 const authenticatedFetch = async (url, options = {}) => {
   const token = getAuthToken();
   
