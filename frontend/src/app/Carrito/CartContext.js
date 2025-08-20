@@ -187,7 +187,7 @@ const apiRequest = async (endpoint, options = {}) => {
       hasAuth: !!config.headers.Authorization
     })
     
-    const response = await fetch(`http://localhost:3001/api${endpoint}`, config)
+const response = await fetch(`${API_URL}${endpoint}`, config)
     
     if (!response.ok) {
       const errorData = await response.json()
@@ -534,6 +534,7 @@ const removeItem = async (cartItemIdOrProductId) => {
       dispatch({ type: ACTIONS.SET_LOADING, payload: false })
     }
   }
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
   // 🔥 CORRECCIÓN CRÍTICA: Usar la función correcta del backend que limpia el carrito
   const createOrder = async (orderData = {}) => {
