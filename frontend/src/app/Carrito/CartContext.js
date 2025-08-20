@@ -536,25 +536,28 @@ const removeItem = async (cartItemIdOrProductId) => {
   }
 
   // 🔥 CORRECCIÓN CRÍTICA: Usar la función correcta del backend que limpia el carrito
-  const createOrder = async (orderData = {}) => {
-    if (!isAuthenticated) {
-      throw new Error('Debes iniciar sesión para realizar un pedido')
-    }
+const createOrder = async (orderData = {}) => {
+  if (!isAuthenticated) {
+    throw new Error('Debes iniciar sesión para realizar un pedido')
+  }
 
-    if (state.items.length === 0) {
-      throw new Error('El carrito está vacío')
-    }
+  if (state.items.length === 0) {
+    throw new Error('El carrito está vacío')
+  }
 
-    try {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: true })
-      dispatch({ type: ACTIONS.SET_ERROR, payload: null })
+  try {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: true })
+    dispatch({ type: ACTIONS.SET_ERROR, payload: null })
 
-      console.log('📝 Creating order with data:', orderData)
-      console.log('🛒 Current cart items:', state.items.length)
+    console.log('📝 Creating order with data:', orderData)
+    console.log('🛒 Current cart items:', state.items.length)
 
-      // 🔥 CAMBIO CRÍTICO: Usar el endpoint correcto que limpia el carrito
-      const pedido = await apiRequest('/pedidos/limpiar-carrito', {
+    // ✅ Usar la URL completa con el backend
+    const pedido = await apiRequest(
+      `${process.env.NEXT_PUBLIC_API_URL}/pedidos/limpiar-carrito`,
+      {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tipo_entrega: orderData.tipo_entrega || 'delivery',
           direccion_entrega: orderData.direccion_entrega,
@@ -562,39 +565,39 @@ const removeItem = async (cartItemIdOrProductId) => {
           notas: orderData.notas,
           metodo_pago: orderData.metodo_pago || 'efectivo'
         })
-      })
-
-      console.log('🔍 Order response:', pedido)
-
-      // ✅ LIMPIAR CARRITO LOCAL inmediatamente
-      if (pedido && pedido.id) {
-        console.log('🧹 Clearing local cart state...')
-        
-        // Limpiar estado local del carrito
-        dispatch({ type: ACTIONS.CLEAR_CART })
-        
-        console.log('✅ Local cart cleared')
-        
-        // Verificar limpieza en BD recargando carrito
-        try {
-          await loadCartFromDB()
-          console.log('🔄 Cart reloaded from database to verify cleanup')
-        } catch (reloadError) {
-          console.warn('⚠️ Could not reload cart from DB:', reloadError.message)
-        }
       }
-      
-      console.log('✅ Order created and cart cleared:', pedido.order_number)
-      return pedido
+    )
 
-    } catch (error) {
-      console.error('❌ Error creating order:', error)
-      dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
-      throw error
-    } finally {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: false })
+    console.log('🔍 Order response:', pedido)
+
+    // ✅ LIMPIAR CARRITO LOCAL inmediatamente
+    if (pedido && pedido.id) {
+      console.log('🧹 Clearing local cart state...')
+      
+      dispatch({ type: ACTIONS.CLEAR_CART }) // limpiar estado local
+      console.log('✅ Local cart cleared')
+
+      // Verificar limpieza en BD recargando carrito
+      try {
+        await loadCartFromDB()
+        console.log('🔄 Cart reloaded from database to verify cleanup')
+      } catch (reloadError) {
+        console.warn('⚠️ Could not reload cart from DB:', reloadError.message)
+      }
     }
+
+    console.log('✅ Order created and cart cleared:', pedido.order_number)
+    return pedido
+
+  } catch (error) {
+    console.error('❌ Error creating order:', error)
+    dispatch({ type: ACTIONS.SET_ERROR, payload: error.message })
+    throw error
+  } finally {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: false })
   }
+}
+
 
   // Funciones para manejar UI
   const toggleCart = () => {
