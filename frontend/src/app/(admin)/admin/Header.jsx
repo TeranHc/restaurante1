@@ -44,9 +44,9 @@ export default function Header() {
             <nav className="hidden lg:flex items-center space-x-1">
               {[
                 // { href: '/', label: 'Inicio', icon: '🏠' },
-                { href: '/admin/menu', label: 'Carta', icon: '📖' },
-                { href: '/admin/ReservationAdmin', label: 'Reservas', icon: '🗓️' },
-                { href: '/admin/ReservationAdmin', label: 'Nosotros', icon: '👥' }
+                { href: '/admin/menu', label: 'Administrar Menú', icon: '📖' },
+                { href: '/admin/ReservationAdmin', label: 'Administrar Reservas', icon: '🗓️' },
+                // { href: '/admin/ReservationAdmin', label: 'Nosotros', icon: '👥' }
               ].map((item) => (
                 <Link
                   key={item.href}
