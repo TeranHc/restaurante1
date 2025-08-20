@@ -22,6 +22,7 @@ export default function BellaVistaLogin() {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 
   const handleChange = (e) => {
@@ -76,12 +77,11 @@ const handleGoogleLogin = async () => {
     console.log('Iniciando Google OAuth...');
     
     // Llamar a tu backend para obtener la URL de autenticación
-    const response = await fetch('http://localhost:3001/api/auth/google', {
+    const response = await fetch(`${API_URL}/auth/google`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
+
 
     const data = await response.json();
     console.log('Respuesta del backend:', data);
@@ -111,7 +111,7 @@ const handleGoogleLogin = async () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
