@@ -253,7 +253,7 @@ router.get('/verify', authenticateToken, async (req, res) => {
         phone: user.phone,
         role: user.role
     },
-    token
+    token 
     });
 
   } catch (error) {
