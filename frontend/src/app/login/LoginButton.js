@@ -42,13 +42,13 @@ export default function LoginButton({ isMobile = false }) {
       console.log('Verificando token:', token) // Debug
       
       // Verificar el token con el backend
-      const response = await fetch('http://localhost:3001/api/auth/verify-token', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-token`, {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+})
 
       console.log('Response status:', response.status) // Debug
 
