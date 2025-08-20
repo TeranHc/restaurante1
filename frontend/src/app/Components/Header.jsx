@@ -123,10 +123,6 @@ export default function Header() {
                 
                 {/* Navegación móvil */}
                 <div className="space-y-2 mb-6">
-                  <h3 className="text-amber-400 font-semibold text-lg mb-4 flex items-center">
-                    <span className="mr-2">📱</span>
-                    Navegación
-                  </h3>
                   {[
                     { href: '/', label: 'Inicio', icon: '🏠' },
                     { href: '/menu', label: 'Nuestra Carta', icon: '📖' },
