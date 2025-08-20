@@ -72,22 +72,27 @@ const { addItem, toggleCart, forceAuthRecheck, isAuthenticated, isLoading } = us
   }, [opcionesSeleccionadas, opciones, basePrice])
 
   const cambiarCantidadOpcion = (opcionId, delta) => {
-    setOpcionesSeleccionadas(prev => {
-      const cantidadActual = prev[opcionId] || 0
-      const nuevaCantidad = Math.max(0, cantidadActual + delta)
+  setOpcionesSeleccionadas(prev => {
+    const cantidadActual = prev[opcionId] || 0
+    let nuevaCantidad = cantidadActual + delta
 
-      if (nuevaCantidad === 0) {
-        const updated = { ...prev }
-        delete updated[opcionId]
-        return updated
-      }
+    // Limitar mínimo a 0 y máximo a 1
+    if (nuevaCantidad < 0) nuevaCantidad = 0
+    if (nuevaCantidad > 1) nuevaCantidad = 1
 
-      return {
-        ...prev,
-        [opcionId]: nuevaCantidad
-      }
-    })
-  }
+    if (nuevaCantidad === 0) {
+      const updated = { ...prev }
+      delete updated[opcionId]
+      return updated
+    }
+
+    return {
+      ...prev,
+      [opcionId]: nuevaCantidad
+    }
+  })
+}
+
 
 // Función para agregar al carrito con opciones personalizadas - VERSIÓN CORREGIDA
 // VERSIÓN CON DEBUGGING COMPLETO - REEMPLAZA handleAddToCart
