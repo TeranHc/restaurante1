@@ -107,57 +107,65 @@ const handleGoogleLogin = async () => {
   // No pongas setIsGoogleLoading(false) aquí porque la página se redirigirá
 };
   // Login tradicional con email/password - Usando tu backend
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
-    setIsLoading(true)
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  if (!validateForm()) return
+  setIsLoading(true)
 
+  try {
+    // Usando la variable de entorno que ya incluye /api
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    })
+
+    // Intentar parsear JSON solo si la respuesta es correcta
+    let data
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(formData)
-})
-
-
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error en el inicio de sesión')
-      }
-
-      // Guardar datos en localStorage - usando tu estructura existente
-      localStorage.setItem('token', data.token) // Token de Supabase Auth
-      localStorage.setItem('refresh_token', data.refresh_token) // Refresh token de Supabase
-      localStorage.setItem('userRole', data.user?.role || 'CLIENT')
-      localStorage.setItem('userName', data.user?.firstName || '')
-      localStorage.setItem('userLastName', data.user?.lastName || '')
-      localStorage.setItem('userEmail', data.user?.email || '')
-      localStorage.setItem('userId', data.user?.id || '')
-      localStorage.setItem('userPhone', data.user?.phone || '')
-
-      console.log('Login exitoso:', {
-        userId: data.user?.id,
-        email: data.user?.email,
-        role: data.user?.role,
-        name: `${data.user?.firstName} ${data.user?.lastName}`.trim()
-      })
-
-      // Redireccionar según el rol
-      if (data.user?.role === 'ADMIN') {
-        window.location.href = '/admin/dashboard'
-      } else {
-        window.location.href = '/'
-      }
-
-    } catch (error) {
-      console.error('Error en login:', error)
-      setErrors({ general: error.message || 'Error en el inicio de sesión' })
-    } finally {
-      setIsLoading(false)
+      data = await response.json()
+    } catch (jsonError) {
+      throw new Error(`Respuesta inválida del servidor: ${response.status} ${response.statusText}`)
     }
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error en el inicio de sesión')
+    }
+
+    // Guardar datos en localStorage
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('refresh_token', data.refresh_token)
+    localStorage.setItem('userRole', data.user?.role || 'CLIENT')
+    localStorage.setItem('userName', data.user?.firstName || '')
+    localStorage.setItem('userLastName', data.user?.lastName || '')
+    localStorage.setItem('userEmail', data.user?.email || '')
+    localStorage.setItem('userId', data.user?.id || '')
+    localStorage.setItem('userPhone', data.user?.phone || '')
+
+    console.log('Login exitoso:', {
+      userId: data.user?.id,
+      email: data.user?.email,
+      role: data.user?.role,
+      name: `${data.user?.firstName} ${data.user?.lastName}`.trim()
+    })
+
+    // Redireccionar según rol
+    if (data.user?.role === 'ADMIN') {
+      window.location.href = '/admin/dashboard'
+    } else {
+      window.location.href = '/'
+    }
+
+  } catch (error) {
+    console.error('Error en login:', error)
+    setErrors({ general: error.message || 'Error en el inicio de sesión' })
+  } finally {
+    setIsLoading(false)
   }
+}
+
 
   return (
     <div className="mt-1 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
