@@ -1,4 +1,5 @@
 // app/reservas/ReservaCliente/page.js
+'use client'
 import { Suspense } from 'react';
 import ReservaClienteComponent from './ReservaClienteComponent';
 
