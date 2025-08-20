@@ -108,70 +108,63 @@ const handleGoogleLogin = async () => {
 };
   // Login tradicional con email/password - Usando tu backend
 const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
-  setIsLoading(true);
+  e.preventDefault()
+  if (!validateForm()) return
+  setIsLoading(true)
 
   try {
-    // Construir la URL correcta
-    const loginUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
-    console.log('🔹 URL de login:', loginUrl);
-    console.log('🔹 Datos enviados:', formData);
+    // Usando la variable de entorno que ya incluye /api
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(formData),
+})
 
-    const response = await fetch(loginUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-
-    console.log('🔹 Status de respuesta:', response.status, response.statusText);
-
-    let data;
+    // Intentar parsear JSON solo si la respuesta es correcta
+    let data
     try {
-      data = await response.json();
-      console.log('🔹 Respuesta JSON del servidor:', data);
+      data = await response.json()
     } catch (jsonError) {
-      throw new Error(`Respuesta inválida del servidor: ${response.status} ${response.statusText}`);
+      throw new Error(`Respuesta inválida del servidor: ${response.status} ${response.statusText}`)
     }
 
     if (!response.ok) {
-      throw new Error(data.message || 'Error en el inicio de sesión');
+      throw new Error(data.message || 'Error en el inicio de sesión')
     }
 
     // Guardar datos en localStorage
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('refresh_token', data.refresh_token);
-    localStorage.setItem('userRole', data.user?.role || 'CLIENT');
-    localStorage.setItem('userName', data.user?.firstName || '');
-    localStorage.setItem('userLastName', data.user?.lastName || '');
-    localStorage.setItem('userEmail', data.user?.email || '');
-    localStorage.setItem('userId', data.user?.id || '');
-    localStorage.setItem('userPhone', data.user?.phone || '');
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('refresh_token', data.refresh_token)
+    localStorage.setItem('userRole', data.user?.role || 'CLIENT')
+    localStorage.setItem('userName', data.user?.firstName || '')
+    localStorage.setItem('userLastName', data.user?.lastName || '')
+    localStorage.setItem('userEmail', data.user?.email || '')
+    localStorage.setItem('userId', data.user?.id || '')
+    localStorage.setItem('userPhone', data.user?.phone || '')
 
-    console.log('✅ Login exitoso:', {
+    console.log('Login exitoso:', {
       userId: data.user?.id,
       email: data.user?.email,
       role: data.user?.role,
       name: `${data.user?.firstName} ${data.user?.lastName}`.trim()
-    });
+    })
 
     // Redireccionar según rol
     if (data.user?.role === 'ADMIN') {
-      window.location.href = '/admin/dashboard';
+      window.location.href = '/admin/dashboard'
     } else {
-      window.location.href = '/';
+      window.location.href = '/'
     }
 
   } catch (error) {
-    console.error('❌ Error en login:', error);
-    setErrors({ general: error.message || 'Error en el inicio de sesión' });
+    console.error('Error en login:', error)
+    setErrors({ general: error.message || 'Error en el inicio de sesión' })
   } finally {
-    setIsLoading(false);
+    setIsLoading(false)
   }
-};
-
+}
 
 
   return (
