@@ -118,16 +118,14 @@ export default function Header() {
 
           {/* MENÚ MÓVIL - Completamente rediseñado */}
           <div className={`lg:hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-[700px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
-            <div className="py-4 sm:py-6">
-              <div className="bg-gradient-to-br from-white/8 to-white/[0.03] backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/15 shadow-2xl">
+            <div className="py-6">
+              <div className="bg-gradient-to-br from-white/8 to-white/[0.03] backdrop-blur-sm rounded-2xl p-6 border border-white/15 shadow-2xl">
                 
                 {/* Navegación móvil */}
                 <div className="space-y-2 mb-4 sm:mb-6">
                   {[
-                    // { href: '/', label: 'Inicio', icon: '🏠' },
                     { href: '/admin/menu', label: 'Administrar Menú', icon: '📖' },
                     { href: '/admin/ReservationAdmin', label: 'Administrar Reservas', icon: '🗓️' },
-                    // { href: '/nosotros', label: 'Sobre Nosotros', icon: '👥' },
                   ].map((item, index) => (
                     <Link 
                       key={item.href} 
@@ -136,15 +134,15 @@ export default function Header() {
                       className="flex items-center justify-between p-3 sm:p-4 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 group border border-transparent hover:border-white/20"
                       style={{ animationDelay: `${index * 75}ms` }}
                     >
-                      <div className="flex items-center space-x-3 sm:space-x-4">
-                        <span className="text-lg sm:text-xl group-hover:scale-110 transition-transform duration-200">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-xl group-hover:scale-110 transition-transform duration-200">
                           {item.icon}
                         </span>
-                        <span className="font-medium text-base sm:text-lg group-hover:text-amber-400 transition-colors duration-200">
+                        <span className="font-medium text-lg group-hover:text-amber-400 transition-colors duration-200">
                           {item.label}
                         </span>
                       </div>
-                      <svg className="w-4 sm:w-5 h-4 sm:h-5 text-gray-500 group-hover:text-amber-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gray-500 group-hover:text-amber-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                       </svg>
                     </Link>
@@ -167,16 +165,16 @@ export default function Header() {
                     toggleCart()
                     setIsMenuOpen(false)
                   }}
-                  className="flex justify-between items-center w-full p-3 sm:p-4 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 mb-3 sm:mb-4 group border border-white/10 hover:border-amber-400/30"
+                  className="flex justify-between items-center w-full p-4 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 mb-4 group border border-white/10 hover:border-amber-400/30"
                 >
-                  <div className="flex items-center space-x-3 sm:space-x-4">
-                    <svg className="w-5 sm:w-6 h-5 sm:h-6 group-hover:text-amber-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                  <div className="flex items-center space-x-4">
+                    <svg className="w-6 h-6 group-hover:text-amber-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119.993z" />
                     </svg>
                     <span className="font-medium text-base sm:text-lg group-hover:text-amber-400 transition-colors duration-200">Mi Carrito</span>
                   </div>
                   {itemCount > 0 && (
-                    <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-sm rounded-full h-6 sm:h-7 w-6 sm:w-7 flex items-center justify-center font-bold shadow-lg">
+                    <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-sm rounded-full h-7 w-7 flex items-center justify-center font-bold shadow-lg">
                       {itemCount > 99 ? '99' : itemCount}
                     </span>
                   )}
