@@ -13,10 +13,12 @@ export default function DisponibilidadForm({ slot, onSubmit, onCancel }) {
   })
   const [restaurants, setRestaurants] = useState([])
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+
   // Cargar restaurantes
   const fetchRestaurants = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/restaurants')
+      const res = await fetch(`${API_URL}/restaurants`)
       if (res.ok) {
         const data = await res.json()
         setRestaurants(data)
@@ -63,7 +65,6 @@ export default function DisponibilidadForm({ slot, onSubmit, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validación: current_reservations no puede ser mayor que max_capacity
     const currentReservations = parseInt(formData.currentReservations) || 0
     const maxCapacity = parseInt(formData.maxCapacity) || 0
     
@@ -104,7 +105,6 @@ export default function DisponibilidadForm({ slot, onSubmit, onCancel }) {
     cursor: 'pointer',
   }
 
-  // Obtener fecha mínima (hoy)
   const today = new Date().toISOString().split('T')[0]
 
   return (
@@ -189,7 +189,6 @@ export default function DisponibilidadForm({ slot, onSubmit, onCancel }) {
         </label>
       </div>
 
-      {/* Información adicional */}
       <div style={{ 
         marginTop: '0.5rem', 
         padding: '0.5rem', 

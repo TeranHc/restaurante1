@@ -16,11 +16,13 @@ export default function ModalCategorias({ open, onClose }) {
   const fetchCategorias = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/categorias')
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`)
       if (!res.ok) throw new Error('Error al cargar categorías')
       const data = await res.json()
       setCategorias(data)
     } catch (error) {
+      console.error('Error fetching categorias:', error)
       alert(error.message)
     } finally {
       setLoading(false)
@@ -40,6 +42,7 @@ export default function ModalCategorias({ open, onClose }) {
     setShowForm(false)
     onClose()
   }
+
 const onFormSubmit = async (categoriaData) => {
   try {
     const token = localStorage.getItem('token'); // <-- tu JWT
@@ -50,7 +53,8 @@ const onFormSubmit = async (categoriaData) => {
 
     let res;
     if (editCategoria) {
-      res = await fetch(`http://localhost:3001/api/categorias/${editCategoria.id}`, {
+      // ✅ CORREGIDO: Usar variable de entorno para PUT
+      res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias/${editCategoria.id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -59,7 +63,8 @@ const onFormSubmit = async (categoriaData) => {
         body: JSON.stringify(categoriaData),
       });
     } else {
-      res = await fetch('http://localhost:3001/api/categorias', {
+      // ✅ CORREGIDO: Usar variable de entorno para POST
+      res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -89,7 +94,6 @@ const onFormSubmit = async (categoriaData) => {
   }
 };
 
-
 // Eliminar categoría
 const onDelete = async (id) => {
   if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
@@ -101,7 +105,8 @@ const onDelete = async (id) => {
   }
 
   try {
-    const res = await fetch(`http://localhost:3001/api/categorias/${id}`, {
+    // ✅ CORREGIDO: Usar variable de entorno para DELETE
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import DisponibilidadForm from './DisponibilidadForm'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+
 export default function Page() {
   const [slots, setSlots] = useState([])
   const [editSlot, setEditSlot] = useState(null)
@@ -11,7 +13,7 @@ export default function Page() {
   const fetchSlots = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/available-slots')
+      const res = await fetch(`${API_URL}/available-slots`)
       if (!res.ok) throw new Error('Error al cargar horarios disponibles')
       const data = await res.json()
       setSlots(data)
@@ -40,8 +42,8 @@ export default function Page() {
       console.log('✅ Datos preparados para enviar:', data)
 
       const url = editSlot
-        ? `http://localhost:3001/api/available-slots/${editSlot.id}`
-        : 'http://localhost:3001/api/available-slots'
+        ? `${API_URL}/available-slots/${editSlot.id}`
+        : `${API_URL}/available-slots`
 
       const res = await fetch(url, {
         method: editSlot ? 'PUT' : 'POST',
@@ -61,7 +63,7 @@ export default function Page() {
   const onDelete = async (id) => {
     if (!confirm('¿Seguro que deseas eliminar este horario disponible?')) return
     try {
-      const res = await fetch(`http://localhost:3001/api/available-slots/${id}`, {
+      const res = await fetch(`${API_URL}/available-slots/${id}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Error al eliminar horario disponible')
@@ -155,21 +157,25 @@ export default function Page() {
                 <td style={tdStyle}>{formatDate(slot.date)}</td>
                 <td style={tdStyle}>{slot.time}</td>
                 <td style={tdStyle}>{getCapacityText(slot)}</td>
-                <td style={{
-                  ...tdStyle,
-                  color: getAvailabilityColor(slot),
-                  fontWeight: 'bold'
-                }}>
+                <td
+                  style={{
+                    ...tdStyle,
+                    color: getAvailabilityColor(slot),
+                    fontWeight: 'bold',
+                  }}
+                >
                   {getAvailabilityText(slot)}
                 </td>
                 <td style={tdStyle}>
-                  <span style={{
-                    padding: '0.2rem 0.5rem',
-                    borderRadius: '4px',
-                    backgroundColor: slot.is_available ? '#d4edda' : '#f8d7da',
-                    color: slot.is_available ? '#155724' : '#721c24',
-                    fontSize: '0.8rem'
-                  }}>
+                  <span
+                    style={{
+                      padding: '0.2rem 0.5rem',
+                      borderRadius: '4px',
+                      backgroundColor: slot.is_available ? '#d4edda' : '#f8d7da',
+                      color: slot.is_available ? '#155724' : '#721c24',
+                      fontSize: '0.8rem',
+                    }}
+                  >
                     {slot.is_available ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>

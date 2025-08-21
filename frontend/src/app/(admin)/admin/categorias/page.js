@@ -8,10 +8,12 @@ export default function Page() {
   const [editCategoria, setEditCategoria] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
+
   const fetchCategorias = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/categorias')
+      const res = await fetch(`${API_URL}/api/categorias`)
       if (!res.ok) throw new Error('Error al cargar categorías')
       const data = await res.json()
       setCategorias(data)
@@ -30,13 +32,13 @@ export default function Page() {
     try {
       let res
       if (editCategoria) {
-        res = await fetch(`http://localhost:3001/api/categorias/${editCategoria.id}`, {
+        res = await fetch(`${API_URL}/api/categorias/${editCategoria.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(categoriaData),
         })
       } else {
-        res = await fetch('http://localhost:3001/api/categorias', {
+        res = await fetch(`${API_URL}/api/categorias`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(categoriaData),
@@ -53,7 +55,7 @@ export default function Page() {
   const onDelete = async (id) => {
     if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return
     try {
-      const res = await fetch(`http://localhost:3001/api/categorias/${id}`, {
+      const res = await fetch(`${API_URL}/api/categorias/${id}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Error al eliminar categoría')
