@@ -87,7 +87,7 @@ export default function BellaVistaRegister() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Función para REGISTRO adaptada para usar fetch directo como en login
+  // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validateForm()) return
@@ -105,7 +105,8 @@ export default function BellaVistaRegister() {
         newsletter: formData.newsletter
       }
 
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      // ✅ CAMBIO PRINCIPAL: Usar variable de entorno
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
