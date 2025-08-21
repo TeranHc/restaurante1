@@ -19,22 +19,26 @@ export default function CartModal() {
     clearError
   } = useCart()
   
-  // Estados para controlar los modales
   const [showCheckout, setShowCheckout] = useState(false)
-  const [localTotal, setLocalTotal] = useState(0)
+  const [calculatedTotal, setCalculatedTotal] = useState(0)
 
-  // Calcular total localmente como respaldo
+  // Calcular total siempre que cambien los items
   useEffect(() => {
-    const calculateTotal = () => {
-      return items.reduce((sum, item) => {
-        const itemPrice = item.precio || 0
-        const quantity = item.quantity || 0
-        return sum + (itemPrice * quantity)
-      }, 0)
-    }
+    console.log('🧮 Recalculando total, items:', items.length)
     
-    setLocalTotal(calculateTotal())
-  }, [items])
+    const newTotal = items.reduce((sum, item) => {
+      const itemPrice = parseFloat(item.precio) || 0
+      const quantity = parseInt(item.quantity) || 0
+      const itemTotal = itemPrice * quantity
+      
+      console.log(`📊 Item: ${item.nombre}, Precio: $${itemPrice}, Cantidad: ${quantity}, Subtotal: $${itemTotal}`)
+      
+      return sum + itemTotal
+    }, 0)
+    
+    console.log('💰 Total calculado:', newTotal)
+    setCalculatedTotal(newTotal)
+  }, [items]) // Solo dependemos de items
 
   if (!isOpen) return null
 
@@ -43,7 +47,6 @@ export default function CartModal() {
     
     console.log('🔄 Cambiando cantidad:', { productId, newQuantity, currentItems: items.length })
     
-    // Si la nueva cantidad es 0, remover el item usando cartItemId
     if (newQuantity === 0) {
       console.log('🗑️ Removiendo item con cantidad 0')
       const item = items.find(i => i.id === productId)
@@ -54,10 +57,15 @@ export default function CartModal() {
     }
     
     try {
-      // Actualizar cantidad usando productId (item.id)
       console.log('➕ Actualizando cantidad:', productId, 'a', newQuantity)
       await updateQuantity(productId, newQuantity)
       console.log('✅ Cantidad actualizada exitosamente')
+      
+      // Forzar recálculo inmediato (el useEffect debería manejarlo, pero por si acaso)
+      setTimeout(() => {
+        console.log('🔄 Forzando recálculo después de update')
+      }, 100)
+      
     } catch (error) {
       console.error('❌ Error actualizando cantidad:', error)
     }
@@ -82,8 +90,8 @@ export default function CartModal() {
     }
   }
 
-  // Usar el total del contexto, pero como respaldo usar el total local
-  const displayTotal = total || localTotal
+  // Usar el total calculado localmente como principal, contexto como respaldo
+  const displayTotal = calculatedTotal
 
   return (
     <>
@@ -176,6 +184,10 @@ export default function CartModal() {
                 <div className="p-6">
                   <div className="max-h-96 overflow-y-auto space-y-4 mb-6">
                     {items.map((item) => {
+                      const itemPrice = parseFloat(item.precio) || 0
+                      const quantity = parseInt(item.quantity) || 0
+                      const subtotal = itemPrice * quantity
+                      
                       return (
                         <div key={item.cartItemId || item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
                           {/* Imagen del producto */}
@@ -203,7 +215,7 @@ export default function CartModal() {
                             {/* Debug info */}
                             {process.env.NODE_ENV === 'development' && (
                               <div className="text-xs text-blue-600 mt-1">
-                                ProductID: {item.id} | CartItemID: {item.cartItemId} | Cantidad: {item.quantity} | Precio: ${item.precio}
+                                ProductID: {item.id} | CartItemID: {item.cartItemId} | Cantidad: {quantity} | Precio: ${itemPrice} | Subtotal: ${subtotal.toFixed(2)}
                               </div>
                             )}
                             
@@ -226,12 +238,12 @@ export default function CartModal() {
                                   <span className="text-gray-600">Base: ${item.precio_base?.toFixed(2)}</span>
                                   <span className="text-amber-600 ml-2">+ Extras: ${item.precio_opciones?.toFixed(2)}</span>
                                   <div className="text-amber-600 font-bold">
-                                    Total: ${item.precio?.toFixed(2)} x {item.quantity} = ${(item.precio * item.quantity).toFixed(2)}
+                                    Total: ${itemPrice.toFixed(2)} x {quantity} = ${subtotal.toFixed(2)}
                                   </div>
                                 </div>
                               ) : (
                                 <div className="text-amber-600 font-bold">
-                                  ${item.precio?.toFixed(2)} x {item.quantity} = ${(item.precio * item.quantity).toFixed(2)}
+                                  ${itemPrice.toFixed(2)} x {quantity} = ${subtotal.toFixed(2)}
                                 </div>
                               )}
                             </div>
@@ -242,11 +254,10 @@ export default function CartModal() {
                             <button
                               onClick={(e) => {
                                 e.preventDefault()
-                                // 🔥 USAR SIEMPRE item.id (productId) para updateQuantity
-                                console.log('🔘 Botón - clicked:', item.id, 'cantidad actual:', item.quantity)
-                                handleQuantityChange(item.id, item.quantity - 1)
+                                console.log('🔘 Botón - clicked:', item.id, 'cantidad actual:', quantity)
+                                handleQuantityChange(item.id, quantity - 1)
                               }}
-                              disabled={cartLoading || item.quantity <= 1}
+                              disabled={cartLoading || quantity <= 1}
                               className="w-8 h-8 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 rounded-full flex items-center justify-center transition"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,11 +267,11 @@ export default function CartModal() {
                             
                             {/* Campo de entrada manual para debug */}
                             <div className="flex flex-col items-center">
-                              <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                              <span className="w-8 text-center font-semibold">{quantity}</span>
                               {process.env.NODE_ENV === 'development' && (
                                 <input
                                   type="number"
-                                  value={item.quantity}
+                                  value={quantity}
                                   onChange={(e) => {
                                     const newQty = parseInt(e.target.value) || 1
                                     handleQuantityChange(item.id, newQty)
@@ -274,9 +285,8 @@ export default function CartModal() {
                             <button
                               onClick={(e) => {
                                 e.preventDefault()
-                                // 🔥 USAR SIEMPRE item.id (productId) para updateQuantity
-                                console.log('🔘 Botón + clicked:', item.id, 'cantidad actual:', item.quantity)
-                                handleQuantityChange(item.id, item.quantity + 1)
+                                console.log('🔘 Botón + clicked:', item.id, 'cantidad actual:', quantity)
+                                handleQuantityChange(item.id, quantity + 1)
                               }}
                               disabled={cartLoading}
                               className="w-8 h-8 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-full flex items-center justify-center transition"
@@ -290,7 +300,6 @@ export default function CartModal() {
                           {/* Botón eliminar */}
                           <button
                             onClick={() => {
-                              // 🔥 USAR cartItemId para removeItem (como está en el Context)
                               console.log('🗑️ Eliminando item con cartItemId:', item.cartItemId)
                               removeItem(item.cartItemId)
                             }}
@@ -315,12 +324,19 @@ export default function CartModal() {
                       </span>
                     </div>
 
-                    {/* Debug info - remover en producción */}
+                    {/* Debug info - mejorado */}
                     {process.env.NODE_ENV === 'development' && (
-                      <div className="mb-4 p-2 bg-blue-50 rounded text-xs">
-                        <div>Context Total: ${total?.toFixed(2) || '0.00'}</div>
-                        <div>Local Total: ${localTotal.toFixed(2)}</div>
-                        <div>Items: {items.length}</div>
+                      <div className="mb-4 p-3 bg-blue-50 rounded text-xs space-y-1">
+                        <div><strong>Context Total:</strong> ${(total || 0).toFixed(2)}</div>
+                        <div><strong>Calculated Total:</strong> ${calculatedTotal.toFixed(2)}</div>
+                        <div><strong>Display Total:</strong> ${displayTotal.toFixed(2)}</div>
+                        <div><strong>Items:</strong> {items.length}</div>
+                        <div><strong>Item Count:</strong> {itemCount}</div>
+                        {items.map((item, i) => (
+                          <div key={i}>
+                            Item {i+1}: {item.nombre} - ${parseFloat(item.precio || 0).toFixed(2)} x {parseInt(item.quantity || 0)} = ${(parseFloat(item.precio || 0) * parseInt(item.quantity || 0)).toFixed(2)}
+                          </div>
+                        ))}
                       </div>
                     )}
 
