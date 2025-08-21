@@ -12,7 +12,7 @@ export default function Header() {
   return (
     <>
       {/* HEADER CON POSICIÓN FIJA EN MÓVILES */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 backdrop-blur-lg border-b border-white/10 shadow-2xl">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 backdrop-blur-lg border-b border-white/10 shadow-2xl supports-[backdrop-filter]:bg-slate-950/95">
         
         {/* Fondo decorativo mejorado */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -116,14 +116,10 @@ export default function Header() {
             </div>
           </div>
 
-          {/* MENÚ MÓVIL - Con scroll independiente */}
-          <div className={`lg:hidden transition-all duration-500 ease-in-out ${
-            isMenuOpen 
-              ? 'max-h-[calc(100vh-5rem)] opacity-100' 
-              : 'max-h-0 opacity-0'
-          } overflow-hidden`}>
-            <div className="py-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-                              <div className="bg-gradient-to-br from-white/8 to-white/[0.03] backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/15 shadow-2xl">
+          {/* MENÚ MÓVIL - Completamente rediseñado */}
+          <div className={`lg:hidden transition-all duration-500 ease-in-out ${isMenuOpen ? 'max-h-[700px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
+            <div className="py-4 sm:py-6">
+              <div className="bg-gradient-to-br from-white/8 to-white/[0.03] backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/15 shadow-2xl">
                 
                 {/* Navegación móvil */}
                 <div className="space-y-2 mb-4 sm:mb-6">
@@ -208,8 +204,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ESPACIADOR PARA CONTENIDO - Compensa el header fixed */}
-      <div className="h-20"></div>
+      {/* ESPACIADOR PARA CONTENIDO - No necesario con sticky */}
 
       {/* Modal del carrito */}
       <CartModal />
