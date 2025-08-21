@@ -1,9 +1,9 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
-import LoginButton from '../../login/LoginButton'
-import { useCart } from '../../Carrito/CartContext'
-import CartModal from '../../Carrito/CartModal'
+import LoginButton from '../login/LoginButton'
+import { useCart } from '../Carrito/CartContext'
+import CartModal from '../Carrito/CartModal'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -124,10 +124,10 @@ export default function Header() {
                 {/* Navegación móvil */}
                 <div className="space-y-2 mb-4 sm:mb-6">
                   {[
-                    { href: '/', label: 'Inicio', icon: '🏠' },
+                    // { href: '/', label: 'Inicio', icon: '🏠' },
                     { href: '/menu', label: 'Nuestra Carta', icon: '📖' },
                     { href: '/reservas', label: 'Hacer Reserva', icon: '🗓️' },
-                    { href: '/nosotros', label: 'Sobre Nosotros', icon: '👥' },
+                    // { href: '/nosotros', label: 'Sobre Nosotros', icon: '👥' },
                   ].map((item, index) => (
                     <Link 
                       key={item.href} 
@@ -150,6 +150,16 @@ export default function Header() {
                     </Link>
                   ))}
                 </div>
+
+                {/* Separador elegante
+                <div className="relative mb-4 sm:mb-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-slate-900 px-4 text-amber-400 text-sm">🛍️</span>
+                  </div>
+                </div> */}
 
                 {/* Carrito móvil */}
                 <button
