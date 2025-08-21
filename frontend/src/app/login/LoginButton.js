@@ -151,12 +151,6 @@ export default function LoginButton({ isMobile = false }) {
           👤 Mi Perfil
         </Link>
         
-        {user.role === 'ADMIN' && (
-          <Link href="/admin/dashboard" className="block w-full text-left text-gray-300 hover:text-white text-sm py-2 px-2 rounded hover:bg-white/10 transition">
-            ⚙️ Panel de Administración
-          </Link>
-        )}
-        
         <button
           onClick={handleLogout}
           className="block w-full text-left text-red-300 hover:text-red-200 text-sm py-2 px-2 rounded hover:bg-red-500/10 transition"
