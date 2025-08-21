@@ -97,7 +97,7 @@ export default function CartModal() {
     <>
       {/* Modal del Carrito */}
       {!showCheckout && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6">
