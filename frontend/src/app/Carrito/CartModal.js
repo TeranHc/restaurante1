@@ -24,9 +24,17 @@ export default function CartModal() {
 
   if (!isOpen) return null
 
-  const handleQuantityChange = (productId, newQuantity) => {
+  const handleQuantityChange = async (productId, newQuantity) => {
     if (newQuantity < 0) return
-    updateQuantity(productId, newQuantity)
+    
+    // Si la cantidad es 0, eliminar el producto
+    if (newQuantity === 0) {
+      await removeItem(productId)
+      return
+    }
+    
+    // Actualizar cantidad
+    await updateQuantity(productId, newQuantity)
   }
 
   const handleProceedToCheckout = () => {
@@ -52,7 +60,7 @@ export default function CartModal() {
     <>
       {/* Modal del Carrito */}
       {!showCheckout && (
-        <div className="fixed inset-0 bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6">
@@ -106,7 +114,7 @@ export default function CartModal() {
               <div className="p-6 text-center">
                 <div className="inline-flex items-center space-x-2">
                   <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-gray-600">Cargando carrito...</span>
+                  <span className="text-gray-600">Actualizando carrito...</span>
                 </div>
               </div>
             )}
@@ -138,107 +146,138 @@ export default function CartModal() {
                 // Lista de productos
                 <div className="p-6">
                   <div className="max-h-96 overflow-y-auto space-y-4 mb-6">
-{items.map((item) => (
-  <div key={item.cartItemId || item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
-    {/* Imagen del producto */}
-    <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-      {item.imagen ? (
-        <img
-          src={item.imagen}
-          alt={item.nombre}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-      )}
-    </div>
+                    {items.map((item) => (
+                      <div 
+                        key={item.cartItemId || item.id} 
+                        className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl"
+                      >
+                        {/* Imagen del producto */}
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                          {item.imagen ? (
+                            <img
+                              src={item.imagen?.startsWith('http') 
+                                ? item.imagen 
+                                : `${process.env.NEXT_PUBLIC_API_URL}${item.imagen}`}
+                              alt={item.nombre}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none'
+                                e.target.nextSibling.style.display = 'flex'
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )}
+                          {/* Fallback image placeholder */}
+                          <div className="w-full h-full items-center justify-center" style={{display: 'none'}}>
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        </div>
 
-    {/* Información del producto */}
-    <div className="flex-1 min-w-0">
-      <h4 className="font-semibold text-gray-800 truncate">{item.nombre}</h4>
-      <p className="text-sm text-gray-600 truncate">{item.descripcion}</p>
-      
-      {/* 🔥 MOSTRAR OPCIONES SELECCIONADAS */}
-      {item.selected_options && item.selected_options.length > 0 && (
-        <div className="mt-1 space-y-1">
-          {item.selected_options.map((option, index) => (
-            <div key={index} className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded inline-block mr-1">
-              {option.option_type}: {option.option_value}
-              {option.extra_price > 0 && ` (+$${option.extra_price.toFixed(2)})`}
-            </div>
-          ))}
-        </div>
-      )}
-      
-      {/* 🔥 MOSTRAR DESGLOSE DE PRECIOS */}
-      <div className="mt-1">
-        {item.precio_opciones > 0 ? (
-          <div className="text-sm">
-            <span className="text-gray-600">Base: ${item.precio_base?.toFixed(2)}</span>
-            <span className="text-amber-600 ml-2">+ Extras: ${item.precio_opciones?.toFixed(2)}</span>
-            <div className="text-amber-600 font-bold">Total: ${item.precio?.toFixed(2)}</div>
-          </div>
-        ) : (
-          <p className="text-amber-600 font-bold">${item.precio?.toFixed(2)}</p>
-        )}
-      </div>
-    </div>
+                        {/* Información del producto */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-800 truncate">{item.nombre}</h4>
+                          <p className="text-sm text-gray-600 truncate">{item.descripcion}</p>
+                          
+                          {/* 🔥 MOSTRAR OPCIONES SELECCIONADAS */}
+                          {item.selected_options && item.selected_options.length > 0 && (
+                            <div className="mt-1 space-y-1">
+                              {item.selected_options.map((option, index) => (
+                                <div key={index} className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded inline-block mr-1 mb-1">
+                                  {option.option_type}: {option.option_value}
+                                  {option.extra_price > 0 && ` (+$${parseFloat(option.extra_price).toFixed(2)})`}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {/* 🔥 MOSTRAR DESGLOSE DE PRECIOS */}
+                          <div className="mt-2">
+                            {item.precio_opciones && item.precio_opciones > 0 ? (
+                              <div className="text-sm space-y-1">
+                                <div className="text-gray-600">
+                                  Base: ${parseFloat(item.precio_base || 0).toFixed(2)}
+                                </div>
+                                <div className="text-amber-600">
+                                  + Extras: ${parseFloat(item.precio_opciones).toFixed(2)}
+                                </div>
+                                <div className="text-amber-600 font-bold border-t pt-1">
+                                  Subtotal: ${parseFloat(item.precio || 0).toFixed(2)}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-amber-600 font-bold">
+                                ${parseFloat(item.precio || 0).toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
 
-    {/* Controles de cantidad */}
-    <div className="flex items-center space-x-3">
-      <button
-        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-        disabled={cartLoading}
-        className="w-8 h-8 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 rounded-full flex items-center justify-center transition"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
-        </svg>
-      </button>
-      
-      <span className="w-8 text-center font-semibold">{item.quantity}</span>
-      
-      <button
-        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-        disabled={cartLoading}
-        className="w-8 h-8 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-full flex items-center justify-center transition"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
-    </div>
+                        {/* Controles de cantidad */}
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => handleQuantityChange(item.cartItemId || item.id, item.quantity - 1)}
+                            disabled={cartLoading || item.quantity <= 1}
+                            className="w-8 h-8 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+                            </svg>
+                          </button>
+                          
+                          <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                          
+                          <button
+                            onClick={() => handleQuantityChange(item.cartItemId || item.id, item.quantity + 1)}
+                            disabled={cartLoading}
+                            className="w-8 h-8 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center transition"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                          </button>
+                        </div>
 
-    {/* Botón eliminar */}
-    <button
-      onClick={() => removeItem(item.cartItemId)}
-      disabled={cartLoading}
-      className="p-2 text-red-500 hover:bg-red-50 disabled:opacity-50 rounded-lg transition"
-    >
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-      </svg>
-    </button>
-  </div>
-))}
+                        {/* Botón eliminar */}
+                        <button
+                          onClick={() => removeItem(item.cartItemId || item.id)}
+                          disabled={cartLoading}
+                          className="p-2 text-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition"
+                          title="Eliminar producto"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Total y acciones */}
                   <div className="border-t pt-4">
                     <div className="flex justify-between items-center mb-4">
-                      <span className="text-lg font-semibold">Total:</span>
-                      <span className="text-2xl font-bold text-amber-600">${total.toFixed(2)}</span>
+                      <span className="text-lg font-semibold text-gray-700">Total:</span>
+                      <span className="text-2xl font-bold text-amber-600">
+                        ${parseFloat(total || 0).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Información adicional del total */}
+                    <div className="text-sm text-gray-600 mb-4">
+                      {itemCount} producto{itemCount !== 1 ? 's' : ''} en tu carrito
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={handleClearCart}
-                        disabled={cartLoading}
-                        className="border border-red-300 text-red-600 px-4 py-3 rounded-lg hover:bg-red-50 disabled:opacity-50 font-medium transition"
+                        disabled={cartLoading || items.length === 0}
+                        className="border border-red-300 text-red-600 px-4 py-3 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
                       >
                         Vaciar Carrito
                       </button>
@@ -246,7 +285,7 @@ export default function CartModal() {
                       <button
                         onClick={handleProceedToCheckout}
                         disabled={cartLoading || items.length === 0}
-                        className="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 text-white px-4 py-3 rounded-lg font-medium transition flex items-center justify-center space-x-2"
+                        className="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-medium transition flex items-center justify-center space-x-2"
                       >
                         <span>Continuar</span>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
