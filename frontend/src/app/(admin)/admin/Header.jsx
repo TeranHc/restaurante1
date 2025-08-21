@@ -1,9 +1,9 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
-import LoginButton from '../login/LoginButton'
-import { useCart } from '../Carrito/CartContext'
-import CartModal from '../Carrito/CartModal'
+import LoginButton from '../../login/LoginButton'
+import { useCart } from '../../Carrito/CartContext'
+import CartModal from '../../Carrito/CartModal'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
