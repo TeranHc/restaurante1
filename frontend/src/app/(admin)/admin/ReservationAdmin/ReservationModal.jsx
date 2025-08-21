@@ -16,22 +16,52 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Cargar usuarios
+  // 🔥 FUNCIÓN PARA OBTENER LA URL BASE DE LA API
+  const getApiUrl = () => {
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  };
+
+  // 🔥 FUNCIÓN PARA OBTENER TOKEN DE AUTENTICACIÓN
+  const getAuthToken = () => {
+    return localStorage.getItem('token') || 
+           localStorage.getItem('authToken') || 
+           localStorage.getItem('adminToken');
+  };
+
+  // 🔥 FUNCIÓN PARA HACER PETICIONES AUTENTICADAS
+  const authenticatedFetch = async (url, options = {}) => {
+    const token = getAuthToken();
+    
+    if (!token) {
+      throw new Error('No estás autenticado. Por favor inicia sesión.');
+    }
+    
+    const config = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, config);
+    
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('adminToken');
+      throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
+    
+    return response;
+  };
+
+  // 🔥 CARGAR USUARIOS CON URL DINÁMICA
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No hay token de autenticación');
-        return;
-      }
-
-      const res = await fetch('http://localhost:3001/api/users', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const apiUrl = getApiUrl();
+      const res = await authenticatedFetch(`${apiUrl}/users`);
 
       if (res.status === 403) {
         console.error('Acceso denegado para cargar usuarios');
@@ -48,26 +78,15 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
       }
     } catch (error) {
       console.error('Error cargando usuarios:', error);
-      setErrors(prev => ({ ...prev, submit: 'Error de conexión al cargar usuarios' }));
+      setErrors(prev => ({ ...prev, submit: error.message || 'Error de conexión al cargar usuarios' }));
     }
   };
 
-  // Cargar restaurantes
+  // 🔥 CARGAR RESTAURANTES CON URL DINÁMICA
   const fetchRestaurants = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No hay token de autenticación');
-        return;
-      }
-
-      const res = await fetch('http://localhost:3001/api/restaurants', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const apiUrl = getApiUrl();
+      const res = await authenticatedFetch(`${apiUrl}/restaurants`);
 
       if (res.status === 403) {
         console.error('Acceso denegado para cargar restaurantes');
@@ -84,7 +103,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
       }
     } catch (error) {
       console.error('Error cargando restaurantes:', error);
-      setErrors(prev => ({ ...prev, submit: 'Error de conexión al cargar restaurantes' }));
+      setErrors(prev => ({ ...prev, submit: error.message || 'Error de conexión al cargar restaurantes' }));
     }
   };
 
@@ -175,6 +194,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
     }
   };
 
+  // 🔥 FUNCIÓN DE SUBMIT CON URL DINÁMICA
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -183,11 +203,6 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No estás autenticado.');
-      }
-
       const data = {
         user_id: formData.userId, // Mantener como string UUID
         restaurant_id: Number(formData.restaurantId),
@@ -202,20 +217,19 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
       console.log('user_id type:', typeof data.user_id, 'value:', data.user_id);
       console.log('user_id length:', data.user_id ? data.user_id.length : 'undefined');
 
+      const apiUrl = getApiUrl();
       const url = reservation
-        ? `http://localhost:3001/api/reservations/${reservation.id}`
-        : 'http://localhost:3001/api/reservations';
+        ? `${apiUrl}/reservations/${reservation.id}`
+        : `${apiUrl}/reservations`;
 
-      const res = await fetch(url, {
+      console.log('🌐 URL de la petición:', url);
+
+      const res = await authenticatedFetch(url, {
         method: reservation ? 'PUT' : 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(data),
       });
 
-      console.log('Response status:', res.status);
+      console.log('📡 Response status:', res.status);
 
       if (res.status === 403) {
         throw new Error('Acceso denegado. No tienes permisos para modificar reservas.');
@@ -223,7 +237,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error('Error response:', errorData);
+        console.error('❌ Error response:', errorData);
         throw new Error(errorData.message || errorData.error || 'Error al guardar reserva');
       }
 
@@ -232,7 +246,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
       alert(reservation ? 'Reserva actualizada correctamente' : 'Reserva creada correctamente');
       
     } catch (error) {
-      console.error('Error guardando reserva:', error);
+      console.error('💥 Error guardando reserva:', error);
       setErrors({ submit: error.message });
     } finally {
       setIsSubmitting(false);
@@ -268,7 +282,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
   };
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -308,7 +322,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
                 name="userId"
                 value={formData.userId}
                 onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                className={`w-full border rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                   errors.userId ? 'border-red-300' : 'border-gray-300'
                 }`}
               >
@@ -335,7 +349,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
                 name="restaurantId"
                 value={formData.restaurantId}
                 onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                className={`w-full border rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                   errors.restaurantId ? 'border-red-300' : 'border-gray-300'
                 }`}
               >
@@ -364,7 +378,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
                 value={formData.reservationDate}
                 onChange={handleChange}
                 min={new Date().toISOString().split('T')[0]}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                className={`w-full border rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                   errors.reservationDate ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -384,7 +398,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
                 name="reservationTime"
                 value={formData.reservationTime}
                 onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                className={`w-full border rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                   errors.reservationTime ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -407,7 +421,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
                 min="1"
                 max="20"
                 placeholder="Ej: 4"
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                className={`w-full border rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                   errors.partySize ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -425,7 +439,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                className={`w-full border rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                   errors.status ? 'border-red-300' : 'border-gray-300'
                 }`}
               >
@@ -450,7 +464,7 @@ const ReservationModal = ({ reservation, selectedDate, selectedRestaurant, onSub
                 rows="3"
                 maxLength="500"
                 placeholder="Ej: Mesa junto a la ventana, silla alta para bebé, alergias alimentarias..."
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${
+                className={`w-full border rounded-lg px-3 py-2 text-black focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${
                   errors.specialRequests ? 'border-red-300' : 'border-gray-300'
                 }`}
               />

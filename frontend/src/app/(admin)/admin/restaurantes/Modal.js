@@ -6,7 +6,7 @@ import { FaSort, FaSortUp, FaSortDown, FaSearch, FaTimes, FaPlus, FaEdit, FaTras
 import RestauranteForm from './ModalForm'
 import RestauranteCard from './ComponentMovil/RestaurantCard'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+// ✅ CORREGIDO: Usar NEXT_PUBLIC_API_URL en lugar de API_BASE_URL personalizada
 
 export default function ModalRestaurantes({ open, onClose }) {
   const [restaurantes, setRestaurantes] = useState([])
@@ -22,17 +22,18 @@ export default function ModalRestaurantes({ open, onClose }) {
   const [filterActivo, setFilterActivo] = useState('')
 
   const fetchRestaurantes = async () => {
-  setLoading(true)
-  setError(null)
-  try {
-    const res = await fetch(`${API_BASE_URL}/restaurants`)
-    if (!res.ok) throw new Error('Error al cargar restaurantes')
-    const data = await res.json()
-    const normalizedData = data.map(restaurant => ({
-      ...restaurant,
-      isActive: restaurant.is_active 
-    }))
-    
+    setLoading(true)
+    setError(null)
+    try {
+      // ✅ CORREGIDO: Usar variable de entorno estándar
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants`)
+      if (!res.ok) throw new Error('Error al cargar restaurantes')
+      const data = await res.json()
+      const normalizedData = data.map(restaurant => ({
+        ...restaurant,
+        isActive: restaurant.is_active 
+      }))
+      
       setRestaurantes(normalizedData)
     } catch (err) {
       setError(err.message)
@@ -57,51 +58,52 @@ export default function ModalRestaurantes({ open, onClose }) {
     onClose()
   }
 
-const handleFormSubmit = async (formData) => {
-  const token = localStorage.getItem('token'); // <-- obtiene JWT
-  if (!token) {
-    alert('No estás autenticado.');
-    return;
-  }
-
-  setSaving(true);
-  setError(null);
-
-  try {
-    const url = editRestaurante
-      ? `http://localhost:3001/api/restaurants/${editRestaurante.id}`
-      : 'http://localhost:3001/api/restaurants';
-    const method = editRestaurante ? 'PUT' : 'POST';
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`, // <-- token aquí
-      },
-      body: JSON.stringify(formData),
-    });
-
-    if (res.status === 403) {
-      alert('Acceso denegado. Necesitas ser administrador.');
+  const handleFormSubmit = async (formData) => {
+    const token = localStorage.getItem('token'); // <-- obtiene JWT
+    if (!token) {
+      alert('No estás autenticado.');
       return;
     }
 
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Error guardando restaurante');
-    }
+    setSaving(true);
+    setError(null);
 
-    await fetchRestaurantes();
-    setEditRestaurante(null);
-    setShowForm(false);
-  } catch (err) {
-    setError(err.message);
-    console.error(err);
-  } finally {
-    setSaving(false);
-  }
-};
+    try {
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const url = editRestaurante
+        ? `${process.env.NEXT_PUBLIC_API_URL}/restaurants/${editRestaurante.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/restaurants`;
+      const method = editRestaurante ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // <-- token aquí
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.status === 403) {
+        alert('Acceso denegado. Necesitas ser administrador.');
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error guardando restaurante');
+      }
+
+      await fetchRestaurantes();
+      setEditRestaurante(null);
+      setShowForm(false);
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleEdit = (restaurante) => {
     setEditRestaurante(restaurante)
@@ -121,50 +123,49 @@ const handleFormSubmit = async (formData) => {
     setError(null)
   }
 
-// Para eliminar:
-const handleDelete = async (id) => {
-  if (!confirm('¿Seguro que deseas eliminar este restaurante?')) return;
+  // Para eliminar:
+  const handleDelete = async (id) => {
+    if (!confirm('¿Seguro que deseas eliminar este restaurante?')) return;
 
-  setSaving(true);
+    setSaving(true);
 
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('No estás autenticado.');
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('No estás autenticado.');
+        setSaving(false);
+        return;
+      }
+
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 403) {
+        alert('Acceso denegado. Necesitas ser administrador.');
+        setSaving(false);
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error eliminando restaurante');
+      }
+
+      await fetchRestaurantes(); // Recarga la lista
+      alert('Restaurante eliminado correctamente');
+
+    } catch (error) {
+      console.error(error);
+      alert('Error eliminando restaurante: ' + error.message);
+    } finally {
       setSaving(false);
-      return;
     }
-
-    const res = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.status === 403) {
-      alert('Acceso denegado. Necesitas ser administrador.');
-      setSaving(false);
-      return;
-    }
-
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Error eliminando restaurante');
-    }
-
-    await fetchRestaurantes(); // Recarga la lista
-    alert('Restaurante eliminado correctamente');
-
-  } catch (error) {
-    console.error(error);
-    alert('Error eliminando restaurante: ' + error.message);
-  } finally {
-    setSaving(false);
-  }
-};
-
-
+  };
 
   // Ordenar columnas
   const handleSort = (column) => {
@@ -516,15 +517,14 @@ const handleDelete = async (id) => {
                                     >
                                       <FaEdit className="text-xs" />
                                     </button>
-                                      <button
-                                        onClick={() => handleDelete(rest.id)} // <-- Solo el ID
-                                        className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
-                                        title="Eliminar"
-                                        disabled={saving}
-                                      >
-                                        <FaTrash className="text-xs" />
-                                      </button>
-
+                                    <button
+                                      onClick={() => handleDelete(rest.id)} // <-- Solo el ID
+                                      className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                                      title="Eliminar"
+                                      disabled={saving}
+                                    >
+                                      <FaTrash className="text-xs" />
+                                    </button>
                                   </div>
                                 </td>
                               </tr>

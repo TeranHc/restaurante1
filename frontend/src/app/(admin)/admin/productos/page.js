@@ -11,7 +11,8 @@ export default function Page() {
   const fetchProductos = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/productos')
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`)
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
       setProductos(data)
@@ -39,9 +40,10 @@ export default function Page() {
         restaurant_id: parseInt(formData.restaurantId),
       }
 
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
       const url = editProducto
-        ? `http://localhost:3001/api/productos/${editProducto.id}`
-        : 'http://localhost:3001/api/productos'
+        ? `${process.env.NEXT_PUBLIC_API_URL}/productos/${editProducto.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/productos`
 
       const method = editProducto ? 'PUT' : 'POST'
 
@@ -67,7 +69,8 @@ export default function Page() {
   const onDelete = async (id) => {
     if (!confirm('¿Seguro que deseas eliminar este producto?')) return
     try {
-      const res = await fetch(`http://localhost:3001/api/productos/${id}`, {
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos/${id}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Error al eliminar producto')
@@ -76,6 +79,14 @@ export default function Page() {
       console.error(error)
       alert(error.message)
     }
+  }
+
+  // Función para construir URL de imagen
+  const getImageUrl = (imagen) => {
+    if (!imagen) return null
+    return imagen.startsWith('http') 
+      ? imagen 
+      : `${process.env.NEXT_PUBLIC_API_URL.replace('/api', '')}${imagen}`
   }
 
   const tableStyle = {
@@ -141,7 +152,7 @@ export default function Page() {
                 <td style={tdStyle}>
                   {prod.imagen ? (
                     <img
-                      src={`http://localhost:3001${prod.imagen}`}
+                      src={getImageUrl(prod.imagen)}
                       alt={prod.nombre}
                       style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
                     />

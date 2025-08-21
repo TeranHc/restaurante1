@@ -22,24 +22,25 @@ export default function ProductoForm({ producto, onSubmit, onCancel, disabled })
   const [imagePreview, setImagePreview] = useState(null)
 
   useEffect(() => {
-  fetch('http://localhost:3001/api/categorias')
-    .then(res => res.json())
-    .then(setCategorias)
-    .catch(err => console.error('Error cargando categorías:', err))
+    // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`)
+      .then(res => res.json())
+      .then(setCategorias)
+      .catch(err => console.error('Error cargando categorías:', err))
 
-  fetch('http://localhost:3001/api/restaurants')
-    .then(res => res.json())
-    .then(data => {
-      const restaurantesActivos = data
-        .map(restaurant => ({
-          ...restaurant,
-          isActive: restaurant.is_active 
-        }))
-        .filter(restaurant => restaurant.isActive) 
-      
-      setRestaurantes(restaurantesActivos)
-    })
-    .catch(err => console.error('Error cargando restaurantes:', err))
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants`)
+      .then(res => res.json())
+      .then(data => {
+        const restaurantesActivos = data
+          .map(restaurant => ({
+            ...restaurant,
+            isActive: restaurant.is_active 
+          }))
+          .filter(restaurant => restaurant.isActive) 
+        
+        setRestaurantes(restaurantesActivos)
+      })
+      .catch(err => console.error('Error cargando restaurantes:', err))
   }, [])
 
   useEffect(() => {
@@ -99,31 +100,32 @@ export default function ProductoForm({ producto, onSubmit, onCancel, disabled })
     setImagePreview(null)
   }
 
-const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  if (isNaN(parseFloat(formData.precio)) || parseFloat(formData.precio) <= 0) {
-    alert('Ingrese un precio válido mayor que cero');
-    return;
-  }
+    if (isNaN(parseFloat(formData.precio)) || parseFloat(formData.precio) <= 0) {
+      alert('Ingrese un precio válido mayor que cero');
+      return;
+    }
 
-  const data = new FormData();
-  Object.keys(formData).forEach(key => {
-    data.append(key, formData[key]);
-  });
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      data.append(key, formData[key]);
+    });
 
-  if (imagenFile) data.append('imagen', imagenFile);
-  if (eliminarImagen) data.append('eliminarImagen', 'true');
+    if (imagenFile) data.append('imagen', imagenFile);
+    if (eliminarImagen) data.append('eliminarImagen', 'true');
 
-  const token = localStorage.getItem('token'); 
-  onSubmit(data, token); // <-- Llama al padre con FormData y token
-};
+    const token = localStorage.getItem('token'); 
+    onSubmit(data, token); // <-- Llama al padre con FormData y token
+  };
 
   const getImageUrl = (producto) => {
     if (!producto?.imagen) return null
+    // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
     return producto.imagen.startsWith('http') 
       ? producto.imagen 
-      : `http://localhost:3001${producto.imagen}`
+      : `${process.env.NEXT_PUBLIC_API_URL.replace('/api', '')}${producto.imagen}`
   }
 
   return (

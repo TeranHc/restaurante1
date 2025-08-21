@@ -19,7 +19,8 @@ export default function Page() {
         return
       }
 
-      const res = await fetch('http://localhost:3001/api/reservations', {
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reservations`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -69,9 +70,10 @@ export default function Page() {
       console.log('user_id type:', typeof data.user_id, 'value:', data.user_id)
       console.log('user_id length:', data.user_id ? data.user_id.length : 'undefined')
 
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
       const url = editReserva
-        ? `http://localhost:3001/api/reservations/${editReserva.id}`
-        : 'http://localhost:3001/api/reservations'
+        ? `${process.env.NEXT_PUBLIC_API_URL}/reservations/${editReserva.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/reservations`
 
       const res = await fetch(url, {
         method: editReserva ? 'PUT' : 'POST',
@@ -113,7 +115,8 @@ export default function Page() {
         return
       }
 
-      const res = await fetch(`http://localhost:3001/api/reservations/${id}`, {
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reservations/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

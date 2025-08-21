@@ -167,6 +167,11 @@ const ReservationAdmin = () => {
   const [calendarSelectedDate, setCalendarSelectedDate] = useState('');
   const [authError, setAuthError] = useState(null); // 🔥 NUEVO: Estado para errores de autenticación
 
+  // 🔥 OBTENER LA URL BASE DE LA API
+  const getApiUrl = () => {
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  };
+
   // 🔥 FUNCIÓN MEJORADA PARA VERIFICAR AUTENTICACIÓN
   const checkAuthStatus = () => {
     const token = getAuthToken();
@@ -189,7 +194,7 @@ const ReservationAdmin = () => {
     }
   }, []);
 
-  // 🔥 FUNCIÓN fetchData MEJORADA con manejo de errores de autenticación
+  // 🔥 FUNCIÓN fetchData MEJORADA con URLs dinámicas
   const fetchData = async () => {
     setLoading(true);
     setAuthError(null); // Limpiar errores previos
@@ -197,11 +202,12 @@ const ReservationAdmin = () => {
     try {
       console.log('🔄 Iniciando carga de datos...');
       
+      const apiBaseUrl = getApiUrl();
       const apiUrls = {
-        restaurants: 'http://localhost:3001/api/restaurants',
-        users: 'http://localhost:3001/api/users', 
-        slots: 'http://localhost:3001/api/available-slots',
-        reservations: 'http://localhost:3001/api/reservations'
+        restaurants: `${apiBaseUrl}/restaurants`,
+        users: `${apiBaseUrl}/users`, 
+        slots: `${apiBaseUrl}/available-slots`,
+        reservations: `${apiBaseUrl}/reservations`
       };
       
       console.log('🌐 URLs de API que se están llamando:', apiUrls);
@@ -343,15 +349,18 @@ const ReservationAdmin = () => {
     });
   }, [reservations, selectedDate, selectedRestaurant, searchUser, users]);
 
-  // 🔥 FUNCIÓN handleDelete MEJORADA
+  // 🔥 FUNCIÓN handleDelete MEJORADA con URL dinámica
   const handleDelete = async (type, id) => {
     if (!confirm('¿Estás seguro de eliminar este elemento?')) return;
     
     try {
       const endpoint = type === 'slot' ? 'available-slots' : 'reservations';
-      console.log('🗑️ Eliminando:', type, 'con ID:', id);
+      const apiBaseUrl = getApiUrl();
+      const deleteUrl = `${apiBaseUrl}/${endpoint}/${id}`;
       
-      const response = await authenticatedFetch(`http://localhost:3001/api/${endpoint}/${id}`, {
+      console.log('🗑️ Eliminando:', type, 'con ID:', id, 'URL:', deleteUrl);
+      
+      const response = await authenticatedFetch(deleteUrl, {
         method: 'DELETE'
       });
       

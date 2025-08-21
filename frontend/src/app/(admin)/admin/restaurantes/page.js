@@ -11,8 +11,8 @@ export default function Page() {
   const fetchRestaurantes = async () => {
     setLoading(true)
     try {
-      // CAMBIO: de 'restaurantes' a 'restaurants'
-      const res = await fetch('http://localhost:3001/api/restaurants')
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants`)
       if (!res.ok) throw new Error('Error al cargar restaurantes')
       const data = await res.json()
       setRestaurantes(data)
@@ -28,46 +28,45 @@ export default function Page() {
   }, [])
 
   const onFormSubmit = async (formData) => {
-  try {
-    const data = {
-    name: formData.name,
-    address: formData.address,
-    phone: formData.phone,
-    email: formData.email,
-    capacity: Number(formData.capacity),
-    opening_time: formData.openingTime,   // Aquí cambio a snake_case
-    closing_time: formData.closingTime,   // Aquí cambio a snake_case
-    is_active: formData.isActive,
+    try {
+      const data = {
+        name: formData.name,
+        address: formData.address,
+        phone: formData.phone,
+        email: formData.email,
+        capacity: Number(formData.capacity),
+        opening_time: formData.openingTime,   // Aquí cambio a snake_case
+        closing_time: formData.closingTime,   // Aquí cambio a snake_case
+        is_active: formData.isActive,
+      }
+
+      console.log('✅ Datos preparados para enviar:', data)
+
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const url = editRestaurante
+        ? `${process.env.NEXT_PUBLIC_API_URL}/restaurants/${editRestaurante.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/restaurants`
+
+      const res = await fetch(url, {
+        method: editRestaurante ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      if (!res.ok) throw new Error('Error al guardar restaurante')
+
+      await fetchRestaurantes()
+      setEditRestaurante(null)
+    } catch (error) {
+      alert(error.message)
+    }
   }
-
-
-    console.log('✅ Datos preparados para enviar:', data)
-
-    const url = editRestaurante
-      ? `http://localhost:3001/api/restaurants/${editRestaurante.id}`
-      : 'http://localhost:3001/api/restaurants'
-
-    const res = await fetch(url, {
-      method: editRestaurante ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-
-    if (!res.ok) throw new Error('Error al guardar restaurante')
-
-    await fetchRestaurantes()
-    setEditRestaurante(null)
-  } catch (error) {
-    alert(error.message)
-  }
-}
-
 
   const onDelete = async (id) => {
     if (!confirm('¿Seguro que deseas eliminar este restaurante?')) return
     try {
-      // CAMBIO: de 'restaurantes' a 'restaurants'
-      const res = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
+      // ✅ CORREGIDO: Usar variable de entorno en lugar de localhost hardcodeado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/restaurants/${id}`, {
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Error al eliminar restaurante')
@@ -143,8 +142,8 @@ export default function Page() {
                 <td style={tdStyle}>{rest.phone}</td>
                 <td style={tdStyle}>{rest.email}</td>
                 <td style={tdStyle}>{rest.capacity}</td>
-                <td style={tdStyle}>{rest.openingTime} - {rest.closingTime}</td>
-                <td style={tdStyle}>{rest.isActive ? 'Sí' : 'No'}</td>
+                <td style={tdStyle}>{rest.opening_time} - {rest.closing_time}</td>
+                <td style={tdStyle}>{rest.is_active ? 'Sí' : 'No'}</td>
                 <td style={tdStyle}>
                   <button
                     style={{ ...buttonStyle, backgroundColor: '#0070f3', color: 'white' }}

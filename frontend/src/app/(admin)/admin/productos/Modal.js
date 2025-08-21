@@ -23,7 +23,8 @@ export default function ModalProductos({ open, onClose }) {
   const fetchProductos = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/productos')
+      // ✅ CORREGIDO: Usar variable de entorno
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`)
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
       setProductos(data)
@@ -61,13 +62,15 @@ const handleFormSubmit = async (formData, token) => {
 
     let res;
     if (editProducto) {
-      res = await fetch(`http://localhost:3001/api/productos/${editProducto.id}`, {
+      // ✅ CORREGIDO: Usar variable de entorno para UPDATE
+      res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos/${editProducto.id}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
     } else {
-      res = await fetch('http://localhost:3001/api/productos', {
+      // ✅ CORREGIDO: Usar variable de entorno para CREATE
+      res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -103,7 +106,6 @@ const handleFormSubmit = async (formData, token) => {
   }
 };
 
-
   const handleEdit = (producto) => {
     setEditProducto(producto)
     setShowForm(true)
@@ -122,19 +124,20 @@ const handleFormSubmit = async (formData, token) => {
 const handleDelete = async (producto) => {
   if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
 
-  setSaving(true); // opcional, si usas estado de guardado
+  setSaving(true);
   try {
-    const token = localStorage.getItem('token'); // <-- tu JWT
+    const token = localStorage.getItem('token');
     if (!token) {
       alert('No estás autenticado.');
       setSaving(false);
       return;
     }
 
-    const res = await fetch(`http://localhost:3001/api/productos/${producto.id}`, {
+    // ✅ CORREGIDO: Usar variable de entorno para DELETE
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos/${producto.id}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${token}`, // <-- agregar token
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -159,7 +162,6 @@ const handleDelete = async (producto) => {
     setSaving(false);
   }
 };
-
 
   // Ordenar columnas
   const handleSort = (column) => {
@@ -219,9 +221,10 @@ const handleDelete = async (producto) => {
 
   const getImageUrl = (producto) => {
     if (!producto.imagen) return null
+    // ✅ CORREGIDO: Usar variable de entorno para imágenes
     return producto.imagen.startsWith('http') 
       ? producto.imagen 
-      : `http://localhost:3001${producto.imagen}`
+      : `${process.env.NEXT_PUBLIC_API_URL}${producto.imagen}`
   }
 
   // Obtener opciones únicas para filtros
