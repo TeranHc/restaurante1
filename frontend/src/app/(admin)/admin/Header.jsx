@@ -126,7 +126,7 @@ export default function Header() {
                   {[
                     // { href: '/', label: 'Inicio', icon: '🏠' },
                     { href: '/admin/menu', label: 'Nuestra Carta', icon: '📖' },
-                    { href: '/admin/reservas', label: 'Hacer Reserva', icon: '🗓️' },
+                    { href: '/admin/ReservationAdmin', label: 'Hacer Reserva', icon: '🗓️' },
                     // { href: '/nosotros', label: 'Sobre Nosotros', icon: '👥' },
                   ].map((item, index) => (
                     <Link 
