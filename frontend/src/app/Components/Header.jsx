@@ -184,7 +184,7 @@ export default function Header() {
                 </button>
 
                 {/* Botones CTA móvil */}
-                <div className="space-y-3 mb-5">
+                {/* <div className="space-y-3 mb-5">
                   <Link 
                     href="/pedido" 
                     onClick={() => setIsMenuOpen(false)}
@@ -193,7 +193,7 @@ export default function Header() {
                     <span>🚀</span>
                     <span>Ordenar Ahora</span>
                   </Link>
-                </div>
+                </div> */}
 
                 {/* Login móvil */}
                 <div className="md:hidden">
