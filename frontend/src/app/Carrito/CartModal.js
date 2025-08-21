@@ -38,22 +38,25 @@ export default function CartModal() {
 
   if (!isOpen) return null
 
-  const handleQuantityChange = async (itemIdentifier, newQuantity) => {
+  const handleQuantityChange = async (productId, newQuantity) => {
     if (newQuantity < 0) return
     
-    console.log('🔄 Cambiando cantidad:', { itemIdentifier, newQuantity, currentItems: items.length })
+    console.log('🔄 Cambiando cantidad:', { productId, newQuantity, currentItems: items.length })
     
-    // Si la nueva cantidad es 0, remover el item
+    // Si la nueva cantidad es 0, remover el item usando cartItemId
     if (newQuantity === 0) {
       console.log('🗑️ Removiendo item con cantidad 0')
-      await removeItem(itemIdentifier)
+      const item = items.find(i => i.id === productId)
+      if (item && item.cartItemId) {
+        await removeItem(item.cartItemId)
+      }
       return
     }
     
     try {
-      // Actualizar cantidad
-      console.log('➕ Actualizando cantidad:', itemIdentifier, 'a', newQuantity)
-      await updateQuantity(itemIdentifier, newQuantity)
+      // Actualizar cantidad usando productId (item.id)
+      console.log('➕ Actualizando cantidad:', productId, 'a', newQuantity)
+      await updateQuantity(productId, newQuantity)
       console.log('✅ Cantidad actualizada exitosamente')
     } catch (error) {
       console.error('❌ Error actualizando cantidad:', error)
@@ -173,11 +176,8 @@ export default function CartModal() {
                 <div className="p-6">
                   <div className="max-h-96 overflow-y-auto space-y-4 mb-6">
                     {items.map((item) => {
-                      // Usar cartItemId si existe, sino usar id
-                      const itemIdentifier = item.cartItemId || item.id
-                      
                       return (
-                        <div key={itemIdentifier} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                        <div key={item.cartItemId || item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
                           {/* Imagen del producto */}
                           <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
                             {item.imagen ? (
@@ -203,7 +203,7 @@ export default function CartModal() {
                             {/* Debug info */}
                             {process.env.NODE_ENV === 'development' && (
                               <div className="text-xs text-blue-600 mt-1">
-                                ID: {itemIdentifier} | Cantidad: {item.quantity} | Precio: ${item.precio}
+                                ProductID: {item.id} | CartItemID: {item.cartItemId} | Cantidad: {item.quantity} | Precio: ${item.precio}
                               </div>
                             )}
                             
@@ -242,8 +242,9 @@ export default function CartModal() {
                             <button
                               onClick={(e) => {
                                 e.preventDefault()
-                                console.log('🔘 Botón - clicked:', itemIdentifier, 'cantidad actual:', item.quantity)
-                                handleQuantityChange(itemIdentifier, item.quantity - 1)
+                                // 🔥 USAR SIEMPRE item.id (productId) para updateQuantity
+                                console.log('🔘 Botón - clicked:', item.id, 'cantidad actual:', item.quantity)
+                                handleQuantityChange(item.id, item.quantity - 1)
                               }}
                               disabled={cartLoading || item.quantity <= 1}
                               className="w-8 h-8 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 rounded-full flex items-center justify-center transition"
@@ -262,7 +263,7 @@ export default function CartModal() {
                                   value={item.quantity}
                                   onChange={(e) => {
                                     const newQty = parseInt(e.target.value) || 1
-                                    handleQuantityChange(itemIdentifier, newQty)
+                                    handleQuantityChange(item.id, newQty)
                                   }}
                                   className="w-12 text-xs text-center border rounded mt-1"
                                   min="1"
@@ -273,8 +274,9 @@ export default function CartModal() {
                             <button
                               onClick={(e) => {
                                 e.preventDefault()
-                                console.log('🔘 Botón + clicked:', itemIdentifier, 'cantidad actual:', item.quantity)
-                                handleQuantityChange(itemIdentifier, item.quantity + 1)
+                                // 🔥 USAR SIEMPRE item.id (productId) para updateQuantity
+                                console.log('🔘 Botón + clicked:', item.id, 'cantidad actual:', item.quantity)
+                                handleQuantityChange(item.id, item.quantity + 1)
                               }}
                               disabled={cartLoading}
                               className="w-8 h-8 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-full flex items-center justify-center transition"
@@ -288,8 +290,9 @@ export default function CartModal() {
                           {/* Botón eliminar */}
                           <button
                             onClick={() => {
-                              console.log('🗑️ Eliminando item:', itemIdentifier)
-                              removeItem(itemIdentifier)
+                              // 🔥 USAR cartItemId para removeItem (como está en el Context)
+                              console.log('🗑️ Eliminando item con cartItemId:', item.cartItemId)
+                              removeItem(item.cartItemId)
                             }}
                             disabled={cartLoading}
                             className="p-2 text-red-500 hover:bg-red-50 disabled:opacity-50 rounded-lg transition"
