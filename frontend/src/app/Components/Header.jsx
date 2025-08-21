@@ -151,7 +151,7 @@ export default function Header() {
                   ))}
                 </div>
 
-                {/* Separador elegante */}
+                {/* Separador elegante
                 <div className="relative mb-4 sm:mb-6">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
@@ -159,7 +159,7 @@ export default function Header() {
                   <div className="relative flex justify-center">
                     <span className="bg-slate-900 px-4 text-amber-400 text-sm">🛍️</span>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Carrito móvil */}
                 <button
