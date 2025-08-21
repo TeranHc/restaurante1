@@ -87,7 +87,7 @@ export default function Header() {
               </button>
 
               {/* Botón CTA Principal */}
-              <div className="hidden sm:block">
+              {/* <div className="hidden sm:block">
                 <Link 
                   href="/pedido" 
                   className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-3 rounded-xl text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-amber-500/30 hover:scale-105 flex items-center space-x-2"
@@ -97,7 +97,7 @@ export default function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-              </div>
+              </div> */}
 
               {/* Login Button */}
               <div className="hidden md:block">
@@ -126,7 +126,7 @@ export default function Header() {
                   {[
                     { href: '/', label: 'Inicio', icon: '🏠' },
                     { href: '/menu', label: 'Nuestra Carta', icon: '📖' },
-                    { href: '/reservas', label: 'Hacer Reserva', icon: '🗓️' },
+                    { href: '/reservas', label: 'Realizar Reservas', icon: '🗓️' },
                     { href: '/nosotros', label: 'Sobre Nosotros', icon: '👥' },
                     // { href: '/contacto', label: 'Contacto', icon: '📞' }
                   ].map((item, index) => (

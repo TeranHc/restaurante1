@@ -87,7 +87,7 @@ export default function Header() {
               </button>
 
               {/* Botón CTA Principal */}
-              <div className="hidden sm:block">
+              {/* <div className="hidden sm:block">
                 <Link 
                   href="/pedido" 
                   className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-amber-500/30 hover:scale-105 flex items-center space-x-2"
@@ -97,7 +97,7 @@ export default function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-              </div>
+              </div> */}
 
               {/* Login Button */}
               <div className="hidden md:block">
@@ -125,8 +125,8 @@ export default function Header() {
                 <div className="space-y-2 mb-4 sm:mb-6">
                   {[
                     // { href: '/', label: 'Inicio', icon: '🏠' },
-                    { href: '/admin/menu', label: 'Nuestra Carta', icon: '📖' },
-                    { href: '/admin/ReservationAdmin', label: 'Hacer Reserva', icon: '🗓️' },
+                    { href: '/admin/menu', label: 'Administrar Menú', icon: '📖' },
+                    { href: '/admin/ReservationAdmin', label: 'Administrar Reservas', icon: '🗓️' },
                     // { href: '/nosotros', label: 'Sobre Nosotros', icon: '👥' },
                   ].map((item, index) => (
                     <Link 
@@ -183,7 +183,7 @@ export default function Header() {
                 </button>
 
                 {/* Botones CTA móvil */}
-                <div className="space-y-3 mb-4 sm:mb-5">
+                {/* <div className="space-y-3 mb-4 sm:mb-5">
                   <Link 
                     href="/pedido" 
                     onClick={() => setIsMenuOpen(false)}
@@ -192,7 +192,7 @@ export default function Header() {
                     <span>🚀</span>
                     <span>Ordenar Ahora</span>
                   </Link>
-                </div>
+                </div> */}
 
                 {/* Login móvil */}
                 <div className="md:hidden">
