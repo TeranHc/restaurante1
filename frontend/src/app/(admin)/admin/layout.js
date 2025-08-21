@@ -1,6 +1,5 @@
 import '../../globals.css'
-import Header from './Header.jsx'
-import Footer from './Footer.jsx'
+import LayoutWithHeader from './LayoutWithHeader'
 
 export const metadata = {
   title: 'Restaurante Delicioso',
@@ -9,12 +8,12 @@ export const metadata = {
 
 export default function AdminLayout({ children }) {
   return (
-    <html lang="es"> 
-      <body className="overflow-x-hidden bg-gray-50 text-gray-900 font-sans flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow mt-1">{children}</main>
-        <Footer />
-      </body>
+    <html lang="es">
+        <body className="overflow-x-hidden bg-gray-50 text-gray-900 font-sans flex-col min-h-screen">
+          <LayoutWithHeader>
+            {children}
+          </LayoutWithHeader>
+        </body>
     </html>
   );
 }
