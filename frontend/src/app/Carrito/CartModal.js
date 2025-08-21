@@ -24,17 +24,17 @@ export default function CartModal() {
 
   if (!isOpen) return null
 
-  const handleQuantityChange = async (productId, newQuantity) => {
+  const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 0) return
     
     // Si la cantidad es 0, eliminar el producto
     if (newQuantity === 0) {
-      await removeItem(productId)
+      removeItem(productId)
       return
     }
     
-    // Actualizar cantidad
-    await updateQuantity(productId, newQuantity)
+    // 🚀 ACTUALIZACIÓN INMEDIATA - Sin await para respuesta instantánea
+    updateQuantity(productId, newQuantity)
   }
 
   const handleProceedToCheckout = () => {
@@ -50,9 +50,9 @@ export default function CartModal() {
     setShowCheckout(false)
   }
 
-  const handleClearCart = async () => {
+  const handleClearCart = () => {
     if (confirm('¿Estás seguro que deseas vaciar el carrito?')) {
-      await clearCart()
+      clearCart() // 🚀 Sin await para respuesta inmediata
     }
   }
 
@@ -223,7 +223,7 @@ export default function CartModal() {
                         <div className="flex items-center space-x-3">
                           <button
                             onClick={() => handleQuantityChange(item.cartItemId || item.id, item.quantity - 1)}
-                            disabled={cartLoading || item.quantity <= 1}
+                            disabled={item.quantity <= 1}
                             className="w-8 h-8 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,8 +235,7 @@ export default function CartModal() {
                           
                           <button
                             onClick={() => handleQuantityChange(item.cartItemId || item.id, item.quantity + 1)}
-                            disabled={cartLoading}
-                            className="w-8 h-8 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center transition"
+                            className="w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center transition"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -247,8 +246,7 @@ export default function CartModal() {
                         {/* Botón eliminar */}
                         <button
                           onClick={() => removeItem(item.cartItemId || item.id)}
-                          disabled={cartLoading}
-                          className="p-2 text-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition"
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
                           title="Eliminar producto"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,7 +274,7 @@ export default function CartModal() {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={handleClearCart}
-                        disabled={cartLoading || items.length === 0}
+                        disabled={items.length === 0}
                         className="border border-red-300 text-red-600 px-4 py-3 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
                       >
                         Vaciar Carrito
@@ -284,7 +282,7 @@ export default function CartModal() {
                       
                       <button
                         onClick={handleProceedToCheckout}
-                        disabled={cartLoading || items.length === 0}
+                        disabled={items.length === 0}
                         className="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg font-medium transition flex items-center justify-center space-x-2"
                       >
                         <span>Continuar</span>
